@@ -10,25 +10,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-is_filetype <- function(x, ext) {
-  tools::file_ext(x) %in% ext
-}
-
-is_emptyish <- function(x) {
-  length(x) == 0 || !nzchar(x)
-}
+context('test bcdc_search')
 
 
-is_whse_object_name <- function(x) {
-
-  ## detect object is a record and then just return FALSE
-  if (inherits(x, "bcdc_record")) {
-    return(FALSE)
-  }
-
-  grepl("^[0-9A-Z_]+\\.[0-9A-Z_]+$", x)
-}
-
-is_record <- function(x) {
-  class(x) == "bcdc_record"
-}
+test_that('works with a record that has no resource', {
+  skip_on_cran()
+  skip_if_net_down()
+  output_path <- tempfile()
+  suppressWarnings(
+    verify_output(output_path, {
+      bcdc_search("Major Railways")
+    })
+  )
+  expect_false(any(grepl("Error", readLines(output_path))))
+  expect_true(any(grepl("no resources", readLines(output_path))))
+})

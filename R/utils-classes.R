@@ -66,21 +66,20 @@ print.bcdc_promise <- function(x, ...) {
 
 #' @export
 print.bcdc_record <- function(x, ...) {
-  cat("B.C. Data Catalogue Record:\n   ", x$title, "\n")
-  cat("\nName:", x$name, "(ID:", x$id, ")")
-  cat("\nPermalink:", paste0("https://catalogue.data.gov.bc.ca/dataset/", x$id))
-  cat("\nSector:", x$sector)
-  cat("\nLicence:", x$license_title)
-  cat("\nType:", x$type)
-  cat("\nLast Updated:", x$record_last_modified, "\n")
-  cat("\nDescription:\n")
-  cat(paste0("    ", strwrap(x$notes, width = 85), collapse = "\n"), "\n")
+  cat(cli::col_blue(cli::style_bold("B.C. Data Catalogue Record:")), x$title, "\n")
+  cat(cli::col_blue(cli::style_italic("\nName:")), x$name, "(ID:", x$id, ")")
+  cat(cli::col_blue(cli::style_italic("\nPermalink:")), paste0("https://catalogue.data.gov.bc.ca/dataset/", x$id))
+  cat(cli::col_blue(cli::style_italic("\nSector:")), x$sector)
+  cat(cli::col_blue(cli::style_italic("\nLicence:")), x$license_title)
+  cat(cli::col_blue(cli::style_italic("\nType:")), x$type)
+  cat(cli::col_blue(cli::style_italic("\nLast Updated:")), x$record_last_modified, "\n")
+  cat(cli::col_blue(cli::style_italic("\nDescription:")), paste0(strwrap(x$notes, width = 85), collapse = "\n"), "\n")
 
-  cat("\nResources: (", nrow(x$resource_df), ")\n")
+  cat(cli::col_blue(cli::style_italic("\nResources: (", nrow(bcdc_tidy_resources(x)), ")\n")))
+  print(bcdc_tidy_resources(x))
 
-  for (r in seq_len(nrow(x$resource_df))) {
-    record_print_helper(x$resource_df[r, ], r, print_avail = TRUE)
-  }
+  cat(cli::col_blue("\nYou can access the 'Resources' data frame using bcdc_tidy_resources()\n\n"))
+
   invisible(x)
 }
 
@@ -114,6 +113,14 @@ print.bcdc_recordlist <- function(x, ...) {
   cat("\nTitles:\n")
   x <- purrr::set_names(x, NULL)
   cat(paste(purrr::imap(x[1:n_print], ~ {
+
+    if (!nrow(bcdc_tidy_resources(x[[.y]]))) {
+      return(paste0(.y, ": ",purrr::pluck(.x, "title"),
+                    col_red("\n This record has no resources. bcdata will not be able to access any data."),
+                    "\n ID: ", purrr::pluck(.x, "id"),
+                    "\n Name: ", purrr::pluck(.x, "name")))
+    }
+
     paste0(
       .y, ": ",purrr::pluck(.x, "title"),
       " (",
@@ -219,15 +226,48 @@ filter.bcdc_promise <- function(.data, ...) {
 #'
 #'@export
 select.bcdc_promise <- function(.data, ...){
-  dots <- rlang::exprs(...)
 
+  ## Eventually have to migrate to tidyselect::eval_select
+  ## https://community.rstudio.com/t/evaluating-using-rlang-when-supplying-a-vector/44693/10
+  cols_to_select <- tidyselect::vars_select(.data$cols_df$col_name, ...)
+
+  ## id is always added in. web request doesn't like asking for it twice
+  cols_to_select <- remove_id_col(cols_to_select)
   ## Always add back in the geom
-  cols_to_select <- paste(geom_col_name(.data$cols_df), paste0(dots, collapse = ","), sep = ",")
+  cols_to_select <- paste(geom_col_name(.data$cols_df), paste0(cols_to_select, collapse = ","), sep = ",")
 
   query_list <- c(.data$query_list, propertyName = cols_to_select)
 
   as.bcdc_promise(list(query_list = query_list, cli = .data$cli,
                        record = .data$record, cols_df = .data$cols_df))
+
+}
+
+
+#' Throw an informative error when attempting mutate on a Web Service call
+#'
+#' The CQL syntax to generate WFS calls does not current allow arithmetic operations. Therefore
+#' this function exists solely to generate an informative error that suggests an alternative
+#' approach to use mutate with bcdata
+#'
+#' @param .data object of class `bcdc_promise` (likely passed from [bcdc_query_geodata()])
+#' @param ... One or more unquoted expressions separated by commas. See details.
+#'
+#' @examples
+#' \dontrun{
+#'
+#' ## Mutate columns
+#' bcdc_query_geodata("bc-airports") %>%
+#'   mutate(LATITUDE * 100)
+#' }
+#'
+#'@export
+mutate.bcdc_promise <- function(.data, ...){
+  dots <- rlang::exprs(...)
+
+  stop(glue::glue(
+  "You must type collect() before using mutate() on a WFS. \nAfter using collect() add this mutate call::
+    mutate({dots}) "), call. = FALSE)
 }
 
 

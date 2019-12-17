@@ -22,11 +22,8 @@
 #' @param x object of class sf, sfc or sfg
 #' @param geometry_predicates Geometry predicates that allow for spatial filtering.
 #' bcbdc_cql_string accepts the following geometric predicates: EQUALS,
-#' DISJOINT, INTERSECTS, TOUCHES, CROSSES,  WITHIN, CONTAINS, OVERLAPS, RELATE,
-#' DWITHIN, BEYOND, BBOX.
-#' @inheritParams RELATE
-#' @inheritParams BBOX
-#' @inheritParams DWITHIN
+#' DISJOINT, INTERSECTS, TOUCHES, CROSSES,  WITHIN, CONTAINS, OVERLAPS,
+#' DWITHIN, BBOX.
 #'
 #' @seealso sql_geom_predicates
 #'
@@ -41,16 +38,17 @@ bcdc_cql_string <- function(x, geometry_predicates, pattern = NULL,
                             distance = NULL, units = NULL,
                             coords = NULL, crs = NULL){
 
+  if (inherits(x, "sql")) {
+    stop(glue::glue("object {as.character(x)} not found.\n The object passed to {geometry_predicates} needs to be valid sf object."),
+         call. = FALSE)
+  }
+
   if(inherits(x, "bcdc_promise")) {
     stop("To use spatial operators, you need to use collect() to retrieve the object used to filter",
          call. = FALSE)
   }
 
-  geom_col <- attr(x, "geom_col")
-  if(is.null(geom_col)) geom_col <- "GEOMETRY"
-
   match.arg(geometry_predicates, cql_geom_predicate_list())
-
 
   # Only convert x to bbox if not using BBOX CQL function
   # because it doesn't take a geom
@@ -65,9 +63,9 @@ bcdc_cql_string <- function(x, geometry_predicates, pattern = NULL,
         if (!is.null(crs)) paste0(", '", crs, "'")
       )
     } else if (geometry_predicates %in% c("DWITHIN", "BEYOND")) {
-      paste0(x, ", ", distance, ", '", units, "'")
+      paste0(x, ", ", distance, ", ", units, "")
     } else if (geometry_predicates == "RELATE") {
-      paste0(x, ", '", pattern, "'")
+      paste0(x, ", ", pattern)
     } else {
       x
     }
@@ -85,6 +83,7 @@ cql_geom_predicate_list <- function() {
 }
 
 sf_text <- function(x) {
+
   if (!inherits(x, c("sf", "sfc", "sfg"))) {
     stop(paste(deparse(substitute(x)), "is not a valid sf object"),
          call. = FALSE)
@@ -118,7 +117,7 @@ sf_text <- function(x) {
 #'
 #' @param geom an sf/sfc/sfg object
 #' @name cql_geom_predicates
-#' @return a CQL expression using the bounding box of the geom
+#' @return a CQL expression to be passed on to the WFS call
 NULL
 
 #' @rdname cql_geom_predicates
@@ -173,7 +172,7 @@ OVERLAPS <- function(geom) {
 #' @param pattern spatial relationship specified by a DE-9IM matrix pattern.
 #' A DE-9IM pattern is a string of length 9 specified using the characters
 #' `*TF012`. Example: `'1*T***T**'`
-#' @export
+#' @noRd
 RELATE <- function(geom, pattern) {
   if (!is.character(pattern) ||
       length(pattern) != 1L ||
@@ -185,7 +184,9 @@ RELATE <- function(geom, pattern) {
 }
 
 #' @rdname cql_geom_predicates
-#' @param coords the coordinates of the bounding box.
+#' @param coords the coordinates of the bounding box as four-element numeric
+#'        vector `c(xmin, ymin, xmax, ymax)`, or a `bbox` object from the `sf`
+#'        package (the result of running `sf::st_bbox()` on an `sf` object).
 #' @param crs (Optional) A string containing an SRS code
 #' (For example, 'EPSG:1234'. The default is to use the CRS of the queried layer)
 #' @export
@@ -194,7 +195,7 @@ BBOX <- function(coords, crs = NULL){
     stop("'coords' must be a length 4 numeric vector", call. = FALSE)
   }
   if (!is.null(crs) && !(is.character(crs) && length(crs) == 1L)) {
-    stop("crs must be a character string denoting the CRS (e.g., 'EPSG:4326'",
+    stop("crs must be a character string denoting the CRS (e.g., 'EPSG:4326')",
          call. = FALSE)
   }
   bcdc_cql_string(x = NULL, "BBOX", coords = coords, crs = crs)
@@ -215,8 +216,8 @@ DWITHIN <- function(geom, distance,
 }
 
 #' @rdname cql_geom_predicates
-#' @inheritParams DWITHIN
-#' @export
+#' @noRd
+# https://osgeo-org.atlassian.net/browse/GEOS-8922
 BEYOND <- function(geom, distance,
                    units = c("meters", "feet", "statute miles", "nautical miles", "kilometers")) {
   if (!is.numeric(distance)) {

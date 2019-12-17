@@ -19,7 +19,7 @@ session. You can silence these warnings altogether by setting an option:
 in your .Rprofile file so the option persists across sessions.}
 
 \item{crs}{the epsg code for the coordinate reference system. Defaults to
-\code{3005} (B.C. Albers). See https://epsgi.io.}
+\code{3005} (B.C. Albers). See https://epsg.io.}
 }
 \value{
 A \code{bcdc_promise} object. This object includes all of the information
@@ -34,7 +34,11 @@ that the request will take quite a while.
 }
 \details{
 Note that this function doesn't actually return the data, but rather an
-object of class \code{bcdc_promise``, which includes all of the information required to retrieve the requested data. In order to get the actual data as an }sf\code{object, you need to run [collect()] on the}bcdc_promise\code{. This allows further refining the call to }bcdc_query_geodata()\code{with [filter()] and/or [select()] statements before pulling down the actual data as an}sf`
+object of class \code{bcdc_promise}, which includes all of the information
+required to retrieve the requested data. In order to get the actual data as
+an \code{sf} object, you need to run \code{\link[=collect]{collect()}} on the \code{bcdc_promise}. This
+allows further refining the call to \code{bcdc_query_geodata()} with \code{\link[=filter]{filter()}}
+and/or \code{\link[=select]{select()}} statements before pulling down the actual data as an \code{sf}
 object with \code{\link[=collect]{collect()}}. See examples.
 }
 \examples{

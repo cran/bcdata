@@ -10,25 +10,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-is_filetype <- function(x, ext) {
-  tools::file_ext(x) %in% ext
-}
+context("testing that mutate method fails")
 
-is_emptyish <- function(x) {
-  length(x) == 0 || !nzchar(x)
-}
-
-
-is_whse_object_name <- function(x) {
-
-  ## detect object is a record and then just return FALSE
-  if (inherits(x, "bcdc_record")) {
-    return(FALSE)
-  }
-
-  grepl("^[0-9A-Z_]+\\.[0-9A-Z_]+$", x)
-}
-
-is_record <- function(x) {
-  class(x) == "bcdc_record"
-}
+test_that("mutate fails on a bcdata promise object",{
+  expect_error(
+    bcdc_query_geodata("bc-airports") %>%
+      select(LATITUDE) %>%
+      mutate(LATITUDE * 100)
+  )
+})

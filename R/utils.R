@@ -27,6 +27,7 @@ bcdc_number_wfs_records <- function(query_list, client){
 
   query_list <- c(resultType = "hits", query_list)
   res_max <- client$post(body = query_list, encode = "form")
+  catch_catalogue_error(res_max)
   txt_max <- res_max$parse("UTF-8")
 
   ## resultType is only returned as XML.
@@ -92,6 +93,10 @@ has_internet <- function() {
 geom_col_name <- function(x) {
   geom_type <- intersect(x$remote_col_type, gml_types())
   x[x$remote_col_type == geom_type, , drop = FALSE]$col_name
+}
+
+remove_id_col <- function(x){
+setdiff(x, "id")
 }
 
 #' @param x a resource_df from formatted record

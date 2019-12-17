@@ -19,7 +19,7 @@
 #' that the request will take quite a while.
 #'
 #' Note that this function doesn't actually return the data, but rather an
-#' object of class `bcdc_promise``, which includes all of the information
+#' object of class `bcdc_promise`, which includes all of the information
 #' required to retrieve the requested data. In order to get the actual data as
 #' an `sf` object, you need to run [collect()] on the `bcdc_promise`. This
 #' allows further refining the call to `bcdc_query_geodata()` with [filter()]
@@ -28,7 +28,7 @@
 #'
 #' @inheritParams bcdc_get_data
 #' @param crs the epsg code for the coordinate reference system. Defaults to
-#'   `3005` (B.C. Albers). See https://epsgi.io.
+#'   `3005` (B.C. Albers). See https://epsg.io.
 #'
 #' @return A `bcdc_promise` object. This object includes all of the information
 #'   required to retrieve the requested data. In order to get the actual data as
@@ -117,8 +117,12 @@ bcdc_query_geodata.bcdc_record <- function(record, crs = 3005) {
     )
   }
 
+  layer_name <- basename(dirname(
+    record$resource_df$url[record$resource_df$format == "wms"]
+  ))
+
   ## Parameters for the API call
-  query_list <- make_query_list(layer_name = record$layer_name, crs = crs)
+  query_list <- make_query_list(layer_name = layer_name, crs = crs)
 
   ## Drop any NULLS from the list
   query_list <- compact(query_list)
