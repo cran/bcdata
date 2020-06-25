@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and limitations 
 
 <!-- badges: start -->
 
-<a id="devex-badge" rel="Exploration" href="https://github.com/BCDevExchange/assets/blob/master/README.md"><img alt="Being designed and built, but in the lab. May change, disappear, or be buggy." style="border-width:0" src="https://assets.bcdevexchange.org/images/badges/exploration.svg" title="Being designed and built, but in the lab. May change, disappear, or be buggy." /></a>
+<a id="devex-badge" rel="Delivery" href="https://github.com/BCDevExchange/assets/blob/master/README.md"><img alt="In production, but maybe in Alpha or Beta. Intended to persist and be supported." style="border-width:0" src="https://assets.bcdevexchange.org/images/badges/delivery.svg" title="In production, but maybe in Alpha or Beta. Intended to persist and be supported." /></a>
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Travis build
 status](https://travis-ci.org/bcgov/bcdata.svg?branch=master)](https://travis-ci.org/bcgov/bcdata)
@@ -40,6 +40,7 @@ Catalogue](https://catalogue.data.gov.bc.ca).
   - `bcdc_search()` - Search records in the catalogue
   - `bcdc_search_facets()` - List catalogue facet search options
   - `bcdc_get_record()` - Print a catalogue record
+  - `bcdc_tidy_resources()` - Get a data frame of resources for a record
   - `bcdc_get_data()` - Get catalogue data
   - `bcdc_query_geodata()` - Get & query catalogue geospatial data
     available through a [Web
@@ -79,12 +80,42 @@ library(bcdata)
 
 ### Vignettes
 
-  - [Get started with
+  - [Get Started with
     bcdata](https://bcgov.github.io/bcdata/articles/bcdata.html)
-  - [Querying spatial data with
+  - [Querying Spatial Data with
     bcdata](https://bcgov.github.io/bcdata/articles/efficiently-query-spatial-data-in-the-bc-data-catalogue.html)
-  - Using bcdata with [bcmaps](https://github.com/bcgov/bcmaps) (coming
-    soon\!)
+  - [Exploring Silviculture Data with
+    bcdata](https://bcgov.github.io/bcdata/articles/explore-silviculture-data-using-bcdata.html)
+  - Using bcdata with [bcmaps](https://github.com/bcgov/bcmaps) (Coming
+    Soon\!)
+
+### BCDC Authentication
+
+If you are an authorized editor of the B.C. Data Catalogue you may want
+to access records that are not publicly available (e.g., in DRAFT,
+waiting to be published). This can be done by authenticating with the
+catalogue with an API key.
+
+***Important Note:*** *Your API key is like a password and you must take
+care to keep it private. Do not share it, and be careful to not include
+it in any scripts or accidentally commit it to GitHub.*
+
+You can log in to the catalogue to obtain your API key, then store it as
+an environment variable in your [`.Renviron`
+file](https://rstats.wtf/r-startup.html#renviron). The environment
+variable must be called `BCDC_KEY`, set like this:
+
+    BCDC_KEY=your-api-key
+
+This way, the relevant bcdata functions will read that key and use it to
+authorize your calls to the catalogue, allowing you to access additional
+records that you are authorized to see if you were logged into the
+catalogue web interface. Functions that benefit from this are:
+
+  - `bcdc_search()`
+  - `bcdc_list()`
+  - `bcdc_get_record()`
+  - `bcdc_get_data()`
 
 ### Getting Help or Reporting an Issue
 

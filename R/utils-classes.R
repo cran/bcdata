@@ -21,7 +21,7 @@ as.bcdc_sf <- function(x, query_list, url, full_url) {
   structure(x,
             class = c("bcdc_sf", setdiff(class(x), "bcdc_sf")),
             query_list = query_list,
-            url = url, full_url = full_url)
+            url = url, full_url = full_url, time_downloaded = Sys.time())
 }
 
 
@@ -39,13 +39,24 @@ print.bcdc_promise <- function(x, ...) {
 
   x$query_list$CQL_FILTER <- finalize_cql(x$query_list$CQL_FILTER)
 
-  query_list <- c(x$query_list, COUNT = 6)
+  if (is.null(x$query_list$count)) {
+    query_list <- c(x$query_list, count = 6) ## only add if not there.
+  } else {
+   query_list <- x$query_list
+  }
+
   cli <- x$cli
   cc <- cli$post(body = query_list, encode = "form")
 
-  catch_catalogue_error(cc)
+  catch_wfs_error(cc)
 
   number_of_records <- bcdc_number_wfs_records(x$query_list, x$cli)
+
+  if (!is.null(x$query_list$count)) {
+    # head or tail have updated the count
+    number_of_records <- x$query_list$count
+  }
+
   parsed <- bcdc_read_sf(cc$parse("UTF-8"))
   fields <- ncol(parsed) - 1
 
@@ -57,7 +68,7 @@ print.bcdc_promise <- function(x, ...) {
   cat_line(glue::glue("Querying {col_red(name)} record"))
 
   cat_bullet(glue::glue("Using {col_blue('collect()')} on this object will return {col_green(number_of_records)} features ",
-                 "and {col_green(fields)} fields"))
+                        "and {col_green(fields)} fields"))
   cat_bullet("At most six rows of the record are printed here")
   cat_rule()
   print(parsed)
@@ -170,6 +181,7 @@ print.bcdc_query <- function(x, ...) {
 #' If you know `CQL` and want to write a `CQL` query directly, write it enclosed
 #' in quotes, wrapped in the [CQL()] function. e.g., `CQL("ID = '42'")`
 #'
+#' @describeIn filter filter.bcdc_promise
 #' @examples
 #' \donttest{
 #'   crd <- bcdc_query_geodata("regional-districts-legally-defined-administrative-areas-of-bc") %>%
@@ -209,11 +221,13 @@ filter.bcdc_promise <- function(.data, ...) {
 #' @param .data object of class `bcdc_promise` (likely passed from [bcdc_query_geodata()])
 #' @param ... One or more unquoted expressions separated by commas. See details.
 #'
+#' @describeIn select select.bcdc_promise
+#'
 #' @examples
 #' \donttest{
 #' feature_spec <- bcdc_describe_feature("bc-airports")
 #' ## Columns that can selected:
-#' feature_spec[feature_spec$nillable == TRUE,]
+#' feature_spec[feature_spec$sticky == TRUE,]
 #'
 #' ## Select columns
 #' bcdc_query_geodata("bc-airports") %>%
@@ -223,6 +237,7 @@ filter.bcdc_promise <- function(.data, ...) {
 #' bcdc_query_geodata("bc-airports") %>%
 #'   select(LOCALITY)
 #' }
+#'
 #'
 #'@export
 select.bcdc_promise <- function(.data, ...){
@@ -243,6 +258,32 @@ select.bcdc_promise <- function(.data, ...){
 
 }
 
+#' @importFrom utils head
+#' @export
+head.bcdc_promise <- function(x, n = 6L, ...) {
+  sorting_col <- pagination_sort_col(x$cols_df)
+  x$query_list <- c(
+    x$query_list,
+    count = n,
+    sortBy = sorting_col
+  )
+  x
+}
+
+#' @importFrom utils tail
+#' @export
+tail.bcdc_promise <- function(x, n = 6L, ...) {
+  number_of_records <- bcdc_number_wfs_records(x$query_list, x$cli)
+  sorting_col <- pagination_sort_col(x$cols_df)
+  x$query_list <- c(
+    x$query_list,
+    count = n,
+    sortBy = sorting_col,
+    startIndex = number_of_records - n
+  )
+  x
+}
+
 
 #' Throw an informative error when attempting mutate on a Web Service call
 #'
@@ -252,7 +293,7 @@ select.bcdc_promise <- function(.data, ...){
 #'
 #' @param .data object of class `bcdc_promise` (likely passed from [bcdc_query_geodata()])
 #' @param ... One or more unquoted expressions separated by commas. See details.
-#'
+#' @describeIn mutate mutate.bcdc_promise
 #' @examples
 #' \dontrun{
 #'
@@ -266,7 +307,7 @@ mutate.bcdc_promise <- function(.data, ...){
   dots <- rlang::exprs(...)
 
   stop(glue::glue(
-  "You must type collect() before using mutate() on a WFS. \nAfter using collect() add this mutate call::
+    "You must type collect() before using mutate() on a WFS. \nAfter using collect() add this mutate call::
     mutate({dots}) "), call. = FALSE)
 }
 
@@ -274,17 +315,21 @@ mutate.bcdc_promise <- function(.data, ...){
 #' Force collection of Web Service request from B.C. Data Catalogue
 #'
 #' After tuning a query, `collect()` is used to actually bring the data into memory.
-#' This will retrieve an sf object into R.
+#' This will retrieve an sf object into R. The `as_tibble()` function can be used
+#' interchangeably with `collect` which matches `dbplyr` behaviour.
 #'
 #' @param x object of class bcdc_promise
 #' @inheritParams collect
-#' @describeIn collect collect.bcdc_promise
+#' @rdname collect-methods
 #' @export
 #'
 #' @examples
 #' \donttest{
 #' bcdc_query_geodata("bc-airports") %>%
 #'   collect()
+#'
+#' bcdc_query_geodata("bc-airports") %>%
+#'   as_tibble()
 #' }
 #'
 collect.bcdc_promise <- function(x, ...){
@@ -300,11 +345,11 @@ collect.bcdc_promise <- function(x, ...){
 
   if (number_of_records < 10000) {
     cc <- tryCatch(cli$post(body = query_list, encode = "form"),
-             error = function(e) {
-               stop("The BC data catalogue experienced issues with this request.
+                   error = function(e) {
+                     stop("There was an issue processing this request.
                      Try reducing the size of the object you are trying to retrieve.", call. = FALSE)})
 
-    catch_catalogue_error(cc)
+    catch_wfs_error(cc)
     url <- cc$url
     full_url <- cli$url_fetch(query = query_list)
   } else {
@@ -331,13 +376,13 @@ collect.bcdc_promise <- function(x, ...){
 
     tryCatch(cc$post(body = query_list, encode = "form"),
              error = function(e) {
-               stop("The BC data catalogue experienced issues with this request.
+               stop("There was an issue processing this request.
                      Try reducing the size of the object you are trying to retrieve.", call. = FALSE)})
 
     url <- cc$url
     full_url <- cc$url_fetch(query = query_list)
 
-    catch_catalogue_error(cc)
+    catch_wfs_error(cc)
     # nocov end
   }
 
@@ -348,6 +393,11 @@ collect.bcdc_promise <- function(x, ...){
 
 }
 
+
+#' @inheritParams collect.bcdc_promise
+#' @rdname collect-methods
+#' @export
+as_tibble.bcdc_promise <- collect.bcdc_promise
 
 #' Show SQL and URL used for Web Service request from B.C. Data Catalogue
 #'

@@ -33,16 +33,20 @@ test_that("bcdc_get_data works with slug and full url with corresponding resourc
             "sf")
   expect_is(ret4 <- bcdc_get_data("76b1b7a3-2112-4444-857a-afccf7b20da8", resource = "4d0377d9-e8a1-429b-824f-0ce8f363512c"),
             "sf")
-  ## Must be a better way to test if these objects are equal
-  expect_true(all(unlist(lapply(list(ret1, ret2, ret3, ret4), nrow))))
-  expect_true(all(unlist(lapply(list(ret1, ret2, ret3, ret4), ncol))))
+  expect_is(ret5 <- bcdc_get_data("https://catalogue.data.gov.bc.ca/dataset/76b1b7a3-2112-4444-857a-afccf7b20da8/resource/4d0377d9-e8a1-429b-824f-0ce8f363512c"),
+            "sf")
+
+  for (x in list(ret2, ret3, ret4, ret5)) {
+    expect_equal(dim(x), dim(ret1))
+    expect_equal(names(x), names(ret1))
+  }
 })
 
 
 test_that("bcdc_get_data works with a non-wms record with only one resource",{
   skip_if_net_down()
   skip_on_cran()
-  name <- "criminal-code-traffic-offences"
+  name <- "ee9d4ee0-6a34-4dff-89e0-9add9a969168" # "criminal-code-traffic-offences"
   expect_is(bcdc_get_data(name), "tbl")
 })
 
@@ -100,7 +104,7 @@ test_that("fails informatively when can't read a file", {
   skip_on_cran()
   expect_error(bcdc_get_data(record = '523dce9d-b464-44a5-b733-2022e94546c3',
                              resource = '4cc98644-f6eb-410b-9df0-f9b2beac9717'),
-               "Could not read data set")
+               "Reading the data set failed with the following error message:")
 })
 
 test_that("bcdc_get_data can return the wms resource when it is specified by resource",{
@@ -154,5 +158,13 @@ test_that("bcdc_get_data fails when >1 resource not specified & noninteractive",
   skip_on_cran()
   expect_error(bcdc_get_data("21c72822-2502-4431-b9a2-92fc9401ef12"),
                "The record you are trying to access appears to have more than one resource.")
+})
+
+test_that("bcdc_get_data handles sheet name specification", {
+  expect_message(bcdc_get_data('8620ce82-4943-43c4-9932-40730a0255d6'), 'This .xlsx resource contains the following sheets:')
+  expect_error(bcdc_get_data('8620ce82-4943-43c4-9932-40730a0255d6', sheet = "foo"), "Error: Sheet 'foo' not found")
+  out <- capture.output(bcdc_get_data('8620ce82-4943-43c4-9932-40730a0255d6', sheet = "Single Detached"), type = 'message')
+  expect_false(any(grepl('This .xlsx resource contains the following sheets:', out)))
+
 })
 

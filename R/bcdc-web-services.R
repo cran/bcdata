@@ -49,7 +49,7 @@
 #'
 #' bcdc_query_geodata("ground-water-wells") %>%
 #'   filter(OBSERVATION_WELL_NUMBER == 108) %>%
-#'   select(WELL_TAG_NUMBER, WATERSHED_CODE) %>%
+#'   select(WELL_TAG_NUMBER, INTENDED_WATER_USE) %>%
 #'   collect()
 #'
 #' ## A moderately large layer
@@ -94,7 +94,7 @@ bcdc_query_geodata.character <- function(record, crs = 3005) {
     query_list <- compact(query_list)
 
     ## GET and parse data to sf object
-    cli <- bcdc_http_client(url = "https://openmaps.gov.bc.ca/geo/pub/wfs")
+    cli <- bcdc_wfs_client()
 
     cols_df <- feature_helper(record)
 
@@ -102,6 +102,12 @@ bcdc_query_geodata.character <- function(record, crs = 3005) {
       as.bcdc_promise(list(query_list = query_list, cli = cli, record = NULL,
                            cols_df = cols_df))
     )
+  }
+
+  if (grepl("/resource/", record)) {
+    #  A full url was passed including record and resource compenents.
+    # Grab the resource id and strip it off the url
+    record <- gsub("/resource/.+", "", record)
   }
 
   obj <- bcdc_get_record(record)
@@ -112,7 +118,7 @@ bcdc_query_geodata.character <- function(record, crs = 3005) {
 #' @export
 bcdc_query_geodata.bcdc_record <- function(record, crs = 3005) {
   if (!any(wfs_available(record$resource_df))) {
-    stop("No Web Service resource available for this dataset.",
+    stop("No Web Service resource available for this data set.",
          call. = FALSE
     )
   }
@@ -128,7 +134,7 @@ bcdc_query_geodata.bcdc_record <- function(record, crs = 3005) {
   query_list <- compact(query_list)
 
   ## GET and parse data to sf object
-  cli <- bcdc_http_client(url = "https://openmaps.gov.bc.ca/geo/pub/wfs")
+  cli <- bcdc_wfs_client()
 
   cols_df <- feature_helper(query_list$typeNames)
 

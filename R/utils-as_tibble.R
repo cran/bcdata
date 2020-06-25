@@ -10,25 +10,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-is_filetype <- function(x, ext) {
-  tools::file_ext(x) %in% ext
-}
-
-is_emptyish <- function(x) {
-  length(x) == 0 || !nzchar(x)
-}
-
-
-is_whse_object_name <- function(x) {
-
-  ## detect object is a record and then just return FALSE
-  if (inherits(x, "bcdc_record")) {
-    return(FALSE)
-  }
-
-  grepl("^[0-9A-Z_]+\\.[0-9A-Z_]+$", x)
-}
-
-is_record <- function(x) {
-  class(x) == "bcdc_record"
-}
+#' as_tibble
+#'
+#' See \code{tibble::\link[tibble]{as_tibble}} for details.
+#'
+#' @name as_tibble
+#' @rdname collect-methods
+#' @keywords internal
+#' @export
+#' @importFrom tibble as_tibble
+NULL
