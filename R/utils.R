@@ -11,14 +11,25 @@
 # See the License for the specific language governing permissions and limitations under the License.
 
 catalogue_base_url <- function() "https://catalogue.data.gov.bc.ca/api/3/"
-wfs_base_url <- function() "https://openmaps.gov.bc.ca/geo/pub/wfs/"
+
+wfs_base_url <- function(host = bcdc_web_service_host()) {
+  paste(host, "geo/pub/wfs/", sep = "/")
+}
+
+wms_base_url <- function(host = bcdc_web_service_host()) {
+  paste(host, "geo/pub/wms/", sep = "/")
+}
+
+bcdc_web_service_host <- function() {
+  getOption("bcdata.web_service_host",
+            default = "https://openmaps.gov.bc.ca")
+}
 
 bcdata_user_agent <- function(){
   "https://github.com/bcgov/bcdata"
 }
 
 compact <- function(l) Filter(Negate(is.null), l)
-
 
 bcdc_number_wfs_records <- function(query_list, client){
 
@@ -257,16 +268,22 @@ read_from_url <- function(resource, ...){
            })
 }
 
+
 resource_to_tibble <- function(x){
   dplyr::tibble(
-    name = purrr::map_chr(x, "name"),
-    url = purrr::map_chr(x, "url"),
-    id = purrr::map_chr(x, "id"),
-    format = purrr::map_chr(x, "format"),
+    name = safe_map_chr(x, "name"),
+    url = safe_map_chr(x, "url"),
+    id = safe_map_chr(x, "id"),
+    format = safe_map_chr(x, "format"),
     ext = purrr::map_chr(x, safe_file_ext),
-    package_id = purrr::map_chr(x, "package_id"),
-    location = simplify_string(purrr::map_chr(x, "resource_storage_location"))
+    package_id = safe_map_chr(x, "package_id"),
+    location = simplify_string(safe_map_chr(x, "resource_storage_location"))
   )
+}
+
+#' @importFrom rlang "%||%"
+safe_map_chr <- function(x, name) {
+  purrr::map_chr(x, ~ .x[[name]] %||% NA_character_)
 }
 
 simplify_string <- function(x) {

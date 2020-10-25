@@ -41,37 +41,68 @@
 #' @examples
 #' \donttest{
 #' # Using the record and resource ID:
-#' bcdc_get_data(record = '76b1b7a3-2112-4444-857a-afccf7b20da8',
-#'               resource = '4d0377d9-e8a1-429b-824f-0ce8f363512c')
-#' bcdc_get_data('1d21922b-ec4f-42e5-8f6b-bf320a286157')
+#' try(
+#'   bcdc_get_data(record = '76b1b7a3-2112-4444-857a-afccf7b20da8',
+#'                 resource = '4d0377d9-e8a1-429b-824f-0ce8f363512c')
+#' )
+#'
+#' try(
+#'   bcdc_get_data('1d21922b-ec4f-42e5-8f6b-bf320a286157')
+#' )
 #'
 #' # Using a `bcdc_record` object obtained from `bcdc_get_record`:
-#' record <- bcdc_get_record('1d21922b-ec4f-42e5-8f6b-bf320a286157')
-#' bcdc_get_data(record)
+#' try(
+#'   record <- bcdc_get_record('1d21922b-ec4f-42e5-8f6b-bf320a286157')
+#' )
+#'
+#' try(
+#'   bcdc_get_data(record)
+#' )
 #'
 #' # Using a BCGW name
-#' bcdc_get_data("WHSE_IMAGERY_AND_BASE_MAPS.GSR_AIRPORTS_SVW")
+#' try(
+#'   bcdc_get_data("WHSE_IMAGERY_AND_BASE_MAPS.GSR_AIRPORTS_SVW")
+#' )
+#'
+#' # Using sf's sql querying ability
+#' try(
+#'   bcdc_get_data(
+#'     record = '30aeb5c1-4285-46c8-b60b-15b1a6f4258b',
+#'     resource = '3d72cf36-ab53-4a2a-9988-a883d7488384',
+#'     layer = 'BC_Boundary_Terrestrial_Line',
+#'     query = "SELECT SHAPE_Length, geom FROM BC_Boundary_Terrestrial_Line WHERE SHAPE_Length < 100"
+#'   )
+#' )
 #'
 #' ## Example of correcting import problems
 #'
 #' ## Some initial problems reading in the data
-#' bcdc_get_data('d7e6c8c7-052f-4f06-b178-74c02c243ea4')
+#' try(
+#'   bcdc_get_data('d7e6c8c7-052f-4f06-b178-74c02c243ea4')
+#' )
 #'
 #' ## From bcdc_get_record we realize that the data is in xlsx format
-#' bcdc_get_record('8620ce82-4943-43c4-9932-40730a0255d6')
+#' try(
+#'  bcdc_get_record('8620ce82-4943-43c4-9932-40730a0255d6')
+#' )
 #'
 #' ## bcdc_read_functions let's us know that bcdata
 #' ## uses readxl::read_excel to import xlsx files
-#' bcdc_read_functions()
+#' try(
+#'  bcdc_read_functions()
+#' )
 #'
 #' ## bcdata let's you know that this resource has
 #' ## multiple worksheets
-#' bcdc_get_data('8620ce82-4943-43c4-9932-40730a0255d6')
+#' try(
+#'  bcdc_get_data('8620ce82-4943-43c4-9932-40730a0255d6')
+#' )
 #'
 #' ## we can control what is read in from an excel file
 #' ## using arguments from readxl::read_excel
-#'
-#' bcdc_get_data('8620ce82-4943-43c4-9932-40730a0255d6', sheet = 'Regional Districts')
+#' try(
+#'   bcdc_get_data('8620ce82-4943-43c4-9932-40730a0255d6', sheet = 'Regional Districts')
+#' )
 #' }
 #'
 #' @export
@@ -154,14 +185,15 @@ bcdc_get_data.bcdc_record <- function(record, resource = NULL, verbose = TRUE, .
   # nocov start
 
   if (interactive() && verbose) {
-    cat("The record you are trying to access appears to have more than one resource.")
-    cat("\n Resources: \n")
+    cat_line_wrap("The record you are trying to access appears to have more than one resource.")
+    cat_line()
+    cat_line("Resources:")
 
     for (r in seq_len(nrow(resource_df))) {
       record_print_helper(resource_df[r, ], r)
     }
 
-    cat("--------\n")
+    cat_line("--------")
   }
 
   choices <- clean_wfs(resource_df$name)
@@ -177,8 +209,8 @@ bcdc_get_data.bcdc_record <- function(record, resource = NULL, verbose = TRUE, .
 
   if (name_choice == "WFS request (Spatial Data)") {
     ## todo
-    # cat("To directly access this record in the future please use this command:\n")
-    # cat(glue::glue("bcdc_get_data('{x}', resource = '{id_choice}')"),"\n")
+    # cat_line_wrap("To directly access this record in the future please use this command:")
+    # cat_line_wrap(glue::glue("bcdc_get_data('{x}', resource = '{id_choice}')"))
     query <- bcdc_query_geodata(record = record_id, ...)
     return(collect(query))
   } else {

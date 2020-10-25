@@ -63,7 +63,6 @@ test_that("operators work with different remote geom col names",{
 })
 
 test_that("Different combinations of predicates work", {
-  skip_on_cran()
   the_bbox <- st_sfc(st_polygon(
     list(structure(c(1670288.515, 1719022.009,
                      1719022.009, 1670288.515, 1670288.515, 667643.77, 667643.77,
@@ -263,4 +262,41 @@ test_that("Nesting functions inside a CQL geometry predicate works (#146)", {
 
   expect_equal(as.character(qry2$query_list$CQL_FILTER),
                "(DWITHIN(SHAPE, MULTIPOLYGON (((1174434 368738, 1171505 361666.9, 1164434 358738, 1157363 361666.9, 1154434 368738, 1157363 375809.1, 1164434 378738, 1171505 375809.1, 1174434 368738)), ((1213023 412959, 1210094 405887.9, 1203023 402959, 1195952 405887.9, 1193023 412959, 1195952 420030.1, 1203023 422959, 1210094 420030.1, 1213023 412959))), 100, meters))")
+})
+
+test_that("works with dates", {
+  skip_if_net_down()
+  skip_on_cran()
+  expect_is(bcdc_query_geodata('historical-orders-and-alerts') %>%
+              filter(EVENT_START_DATE < "2017-05-01") %>%
+              collect(), "bcdc_sf")
+  expect_is(bcdc_query_geodata('historical-orders-and-alerts') %>%
+              filter(EVENT_START_DATE < as.Date("2017-05-01")) %>%
+              collect(), "bcdc_sf")
+  expect_is(bcdc_query_geodata('historical-orders-and-alerts') %>%
+              filter(EVENT_START_DATE < as.POSIXct("2017-05-01")) %>%
+              collect(), "bcdc_sf")
+  dt <- as.Date("2017-05-01")
+  expect_is(bcdc_query_geodata('historical-orders-and-alerts') %>%
+              filter(EVENT_START_DATE < dt) %>%
+              collect(), "bcdc_sf")
+  pt <- as.Date("2017-05-01")
+  expect_is(bcdc_query_geodata('historical-orders-and-alerts') %>%
+              filter(EVENT_START_DATE < pt) %>%
+              collect(), "bcdc_sf")
+})
+
+test_that("works with various as.x functions", {
+  skip_if_net_down()
+  skip_on_cran()
+  expect_is(
+    bcdc_query_geodata(point_record) %>%
+      filter(NUMBER_OF_RUNWAYS == as.numeric("3")) %>%
+      collect(),
+    "bcdc_sf")
+  expect_is(
+    bcdc_query_geodata(point_record) %>%
+      filter(DESCRIPTION == as.character("seaplane anchorage")) %>%
+      collect(),
+    "bcdc_sf")
 })
