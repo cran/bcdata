@@ -146,6 +146,24 @@ print.bcdc_recordlist <- function(x, ...) {
 }
 
 #' @export
+print.bcdc_group <- function(x, ...) {
+
+  cat_line_wrap(cli::col_blue(
+    cli::style_italic(
+      "Group Description: "
+    )
+  ), unique(attr(x, "description")))
+
+
+
+  cat_line_wrap(cli::col_blue(
+    cli::style_italic("Number of datasets: ")), nrow(x))
+
+  print(tibble::as_tibble(x))
+}
+
+
+#' @export
 print.bcdc_query <- function(x, ...) {
 
   cat_line("<url>")
@@ -361,7 +379,7 @@ collect.bcdc_promise <- function(x, ...){
   ## Determine total number of records for pagination purposes
   number_of_records <- bcdc_number_wfs_records(query_list, cli)
 
-  if (number_of_records < 10000) {
+  if (number_of_records < getOption("bcdata.single_download_limit", default = 10000)) {
     cc <- tryCatch(cli$post(body = query_list, encode = "form"),
                    error = function(e) {
                      stop("There was an issue processing this request.
@@ -371,8 +389,6 @@ collect.bcdc_promise <- function(x, ...){
     url <- cc$url
     full_url <- cli$url_fetch(query = query_list)
   } else {
-    # tests that cover this are skipped due to large size
-    # nocov start
     message("This record requires pagination to complete the request.")
     sorting_col <- pagination_sort_col(x$cols_df)
 
@@ -381,14 +397,13 @@ collect.bcdc_promise <- function(x, ...){
     # Create pagination client
     cc <- crul::Paginator$new(
       client = cli,
-      by = "query_params",
+      by = "limit_offset",
       limit_param = "count",
       offset_param = "startIndex",
       limit = number_of_records,
-      limit_chunk = getOption("bcdata.chunk-limit", default = 1000),
-      progress = TRUE
+      chunk = getOption("bcdata.chunk_limit", default = 1000),
+      progress = interactive()
     )
-
 
     message("Retrieving data")
 
@@ -401,7 +416,6 @@ collect.bcdc_promise <- function(x, ...){
     full_url <- cc$url_fetch(query = query_list)
 
     catch_wfs_error(cc)
-    # nocov end
   }
 
   txt <- cc$parse("UTF-8")
