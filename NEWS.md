@@ -1,3 +1,14 @@
+# bcdata 0.2.3
+
+### IMPROVEMENTS
+- Setting the `bcdata.single_download_limit` limit dynamically from the getCapabilities endpoint. #256
+- `bcdc_describe_feature` now joins an object description column to the returned object to provide more information about a field directly in R. #241, #259
+- Better documentation and information surrounding the `bcdata.max_geom_pred_size` option. #243, #258 
+- Add new function `bcdc_check_geom_size` so users can check prior to submitting a WFS request with `filter` to see 
+if the request will require a bounding box conversion. #243, #258
+- Better documentation and messaging about when and why paginated requests are required by `bcdc_query_geodata()`. #240, #264
+- Better documentation and print method for what records are suitable for use with `bcdc_query_geodata()`. #265, #267
+
 # bcdata 0.2.2
 ### IMPROVEMENTS
 * Added `bcdc_list_groups` and `bcdc_list_group_records` to provide the ability to query on the group endpoint of the catalogue API. #234
