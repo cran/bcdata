@@ -85,10 +85,8 @@ print.bcdc_promise <- function(x, ...) {
 print.bcdc_record <- function(x, ...) {
   cat_line_wrap(cli::col_blue(cli::style_bold("B.C. Data Catalogue Record: ")), x$title)
   cat_line_wrap(cli::col_blue(cli::style_italic("Name: ")), x$name, " (ID: ", x$id, ")")
-  cat_line_wrap(cli::col_blue(cli::style_italic("Permalink: ")), paste0("https://catalogue.data.gov.bc.ca/dataset/", x$id))
-  cat_line_wrap(cli::col_blue(cli::style_italic("Sector: ")), x$sector)
+  cat_line_wrap(cli::col_blue(cli::style_italic("Permalink: ")), paste0(catalogue_base_url(), "dataset/", x$id))
   cat_line_wrap(cli::col_blue(cli::style_italic("Licence: ")), x$license_title)
-  cat_line_wrap(cli::col_blue(cli::style_italic("Type: ")), x$type)
   cat_line_wrap(cli::col_blue(cli::style_italic("Description: ")), x$notes)
 
 
@@ -328,6 +326,26 @@ tail.bcdc_promise <- function(x, n = 6L, ...) {
     startIndex = number_of_records - n
   )
   x
+}
+
+
+#' @export
+names.bcdc_promise <- function(x) {
+  cols <- x[["cols_df"]]
+  query <- x[["query_list"]]
+
+  if (!is.null(query$propertyName)) {
+    select_cols <- strsplit(query$propertyName, ",")[[1]]
+    cols <- cols$col_name[cols$sticky | cols$col_name %in% select_cols]
+  } else {
+    cols <- cols$col_name
+  }
+
+  cols[cols == "SHAPE" | cols == "GEOMETRY"] <- "geometry"
+  geom_idx <- which(cols == "geometry")
+
+  cols[c(seq_along(cols)[-geom_idx], geom_idx)]
+
 }
 
 

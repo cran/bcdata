@@ -1,6 +1,6 @@
 ---
 title: "Querying Spatial Data with bcdata"
-date: "2021-04-13"
+date: "2021-10-27"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Querying Spatial Data with bcdata}
@@ -50,9 +50,7 @@ bcdc_get_record("78ec5279-4534-49a1-97e8-9d315936f08b")
 #> B.C. Data Catalogue Record: School Districts of BC
 #> Name: school-districts-of-bc (ID: 78ec5279-4534-49a1-97e8-9d315936f08b)
 #> Permalink: https://catalogue.data.gov.bc.ca/dataset/78ec5279-4534-49a1-97e8-9d315936f08b
-#> Sector: Education
 #> Licence: Open Government Licence - British Columbia
-#> Type: Geographic
 #> Description: The School Districts dataset contains the spatial representation (polygon)
 #>  of the current extent of the administrative areas defined under section 176(1) of the
 #>  School Act for the purposes of preservation and promotion of the fundamental principle
@@ -72,15 +70,15 @@ This data is the boundary of each school district. The key information in this m
 ```r
 bcdc_query_geodata("78ec5279-4534-49a1-97e8-9d315936f08b")
 #> Querying 'school-districts-of-bc' record
-#> ● Using collect() on this object will return 59 features and 9 fields
-#> ● At most six rows of the record are printed here
-#> ────────────────────────────────────────────────────────────────────────────────────────────────────
+#> • Using collect() on this object will return 59 features and 9 fields
+#> • At most six rows of the record are printed here
+#> ───────────────────────────────────────────────────────────────────────────────────────────────────────
 #> Simple feature collection with 6 features and 9 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 956376 ymin: 475108.4 xmax: 1635228 ymax: 901924.4
 #> Projected CRS: NAD83 / BC Albers
-#> # A tibble: 6 x 10
+#> # A tibble: 6 × 10
 #>   id                 ADMIN_AREA_SID SCHOOL_DISTRICT… SCHOOL_DISTRICT_… FEATURE_CODE FEATURE_AREA_SQM
 #>   <chr>                       <int> <chr>                        <int> <chr>                   <dbl>
 #> 1 WHSE_TANTALIS.TA_…            300 Arrow Lakes                     10 FH10000300        7392472526.
@@ -100,15 +98,15 @@ This is the initial query to the data in the catalogue. What has been returned i
 bcdc_query_geodata("78ec5279-4534-49a1-97e8-9d315936f08b") %>%
   filter(SCHOOL_DISTRICT_NAME %in% c("Greater Victoria", "Prince George","Kamloops/Thompson"))
 #> Querying 'school-districts-of-bc' record
-#> ● Using collect() on this object will return 1 features and 9 fields
-#> ● At most six rows of the record are printed here
-#> ────────────────────────────────────────────────────────────────────────────────────────────────────
+#> • Using collect() on this object will return 1 features and 9 fields
+#> • At most six rows of the record are printed here
+#> ───────────────────────────────────────────────────────────────────────────────────────────────────────
 #> Simple feature collection with 1 feature and 9 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1126789 ymin: 821142.1 xmax: 1528155 ymax: 1224202
 #> Projected CRS: NAD83 / BC Albers
-#> # A tibble: 1 x 10
+#> # A tibble: 1 × 10
 #>   id                 ADMIN_AREA_SID SCHOOL_DISTRICT… SCHOOL_DISTRICT_… FEATURE_CODE FEATURE_AREA_SQM
 #>   <chr>                       <int> <chr>                        <int> <chr>                   <dbl>
 #> 1 WHSE_TANTALIS.TA_…            328 Prince George                   57 FH10000300       51888780641.
@@ -124,18 +122,18 @@ bcdc_query_geodata("78ec5279-4534-49a1-97e8-9d315936f08b") %>%
   filter(SCHOOL_DISTRICT_NAME %in% c("Greater Victoria", "Prince George","Kamloops/Thompson")) %>%
   select(SCHOOL_DISTRICT_NAME)
 #> Querying 'school-districts-of-bc' record
-#> ● Using collect() on this object will return 1 features and 5 fields
-#> ● At most six rows of the record are printed here
-#> ────────────────────────────────────────────────────────────────────────────────────────────────────
+#> • Using collect() on this object will return 1 features and 5 fields
+#> • At most six rows of the record are printed here
+#> ───────────────────────────────────────────────────────────────────────────────────────────────────────
 #> Simple feature collection with 1 feature and 5 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1126789 ymin: 821142.1 xmax: 1528155 ymax: 1224202
 #> Projected CRS: NAD83 / BC Albers
-#> # A tibble: 1 x 6
-#>   id         ADMIN_AREA_SID SCHOOL_DISTRICT… SCHOOL_DISTRICT… OBJECTID                      geometry
-#>   <chr>               <int> <chr>                       <int>    <int>                 <POLYGON [m]>
-#> 1 WHSE_TANT…            328 Prince George                  57      562 ((1137478 1221549, 1137399 1…
+#> # A tibble: 1 × 6
+#>   id        ADMIN_AREA_SID SCHOOL_DISTRICT_… SCHOOL_DISTRICT… OBJECTID                      geometry
+#>   <chr>              <int> <chr>                        <int>    <int>                 <POLYGON [m]>
+#> 1 WHSE_TAN…            328 Prince George                   57      562 ((1137478 1221549, 1137399 1…
 ```
 
 Note that in the `select` statement, we did not explicitly ask for the spatial data and also that there are several columns present that we didn't select. This is because within each data set in the data catalogue, there are several columns that will always be returned regardless of what is selected. If you really don't want those columns after you `collect` the data, which we will take care of right now, you can drop them:
@@ -168,9 +166,7 @@ bcdc_get_record("6a2fea1b-0cc4-4fc2-8017-eaf755d516da")
 #> B.C. Data Catalogue Record: Local and Regional Greenspaces
 #> Name: local-and-regional-greenspaces (ID: 6a2fea1b-0cc4-4fc2-8017-eaf755d516da)
 #> Permalink: https://catalogue.data.gov.bc.ca/dataset/6a2fea1b-0cc4-4fc2-8017-eaf755d516da
-#> Sector: Natural Resources
 #> Licence: Open Government Licence - British Columbia
-#> Type: Geographic
 #> Description: This dataset contains spatial and attribute information for local and
 #>  regional greenspaces in British Columbia. Local and regional greenspaces are municipal
 #>  or regional district lands designated by local government agencies and managed for
@@ -194,15 +190,15 @@ Again we recognize this is [WFS-enabled](https://en.wikipedia.org/wiki/Web_Featu
 ```r
 bcdc_query_geodata("6a2fea1b-0cc4-4fc2-8017-eaf755d516da")
 #> Querying 'local-and-regional-greenspaces' record
-#> ● Using collect() on this object will return 8708 features and 19 fields
-#> ● At most six rows of the record are printed here
-#> ────────────────────────────────────────────────────────────────────────────────────────────────────
+#> • Using collect() on this object will return 8708 features and 19 fields
+#> • At most six rows of the record are printed here
+#> ───────────────────────────────────────────────────────────────────────────────────────────────────────
 #> Simple feature collection with 6 features and 19 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1228153 ymin: 453419.9 xmax: 1240644 ymax: 467184.1
 #> Projected CRS: NAD83 / BC Albers
-#> # A tibble: 6 x 20
+#> # A tibble: 6 × 20
 #>   id          LOCAL_REG_GREENS… PARK_NAME   PARK_TYPE PARK_PRIMARY_USE REGIONAL_DISTRI… MUNICIPALITY
 #>   <chr>                   <int> <chr>       <chr>     <chr>            <chr>            <chr>       
 #> 1 WHSE_BASEM…                59 Hazelnut M… Local     Park             Metro Vancouver  Surrey      
@@ -224,15 +220,15 @@ Since we are interested in only "Park" data we can subset our query:
 bcdc_query_geodata("6a2fea1b-0cc4-4fc2-8017-eaf755d516da") %>%
   filter(PARK_PRIMARY_USE == "Park")
 #> Querying 'local-and-regional-greenspaces' record
-#> ● Using collect() on this object will return 4373 features and 19 fields
-#> ● At most six rows of the record are printed here
-#> ────────────────────────────────────────────────────────────────────────────────────────────────────
+#> • Using collect() on this object will return 4373 features and 19 fields
+#> • At most six rows of the record are printed here
+#> ───────────────────────────────────────────────────────────────────────────────────────────────────────
 #> Simple feature collection with 6 features and 19 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1228153 ymin: 453419.9 xmax: 1240644 ymax: 467184.1
 #> Projected CRS: NAD83 / BC Albers
-#> # A tibble: 6 x 20
+#> # A tibble: 6 × 20
 #>   id          LOCAL_REG_GREENS… PARK_NAME   PARK_TYPE PARK_PRIMARY_USE REGIONAL_DISTRI… MUNICIPALITY
 #>   <chr>                   <int> <chr>       <chr>     <chr>            <chr>            <chr>       
 #> 1 WHSE_BASEM…                59 Hazelnut M… Local     Park             Metro Vancouver  Surrey      
@@ -256,9 +252,9 @@ districts_parks <- bcdc_query_geodata("6a2fea1b-0cc4-4fc2-8017-eaf755d516da") %>
   filter(INTERSECTS(districts)) %>%
   collect()
 #> The object is too large to perform exact spatial operations using bcdata.
-#> Object size: 948544 bytes
+#> Object size: 948576 bytes
 #> BC Data Threshold: 500000 bytes
-#> Exceedance: 448544 bytes
+#> Exceedance: 448576 bytes
 #> See ?bcdc_check_geom_size for more details
 #> A bounding box was drawn around the object passed to INTERSECTS and all features within the box will be returned.
 ```
@@ -273,9 +269,9 @@ In this example, many parks not contained within the school districts are includ
 ```r
 bcdc_check_geom_size(districts)
 #> The object is too large to perform exact spatial operations using bcdata.
-#> Object size: 948544 bytes
+#> Object size: 948576 bytes
 #> BC Data Threshold: 500000 bytes
-#> Exceedance: 448544 bytes
+#> Exceedance: 448576 bytes
 #> See ?bcdc_check_geom_size for more details
 ```
 
@@ -311,10 +307,10 @@ districts_parks_join %>%
   group_by(SCHOOL_DISTRICT_NAME) %>%
   summarise(total_area = sum(area)) %>%
   arrange(total_area)
-#> # A tibble: 1 x 2
+#> # A tibble: 1 × 2
 #>   SCHOOL_DISTRICT_NAME total_area
 #>   <chr>                     [m^2]
-#> 1 Prince George          12254346
+#> 1 Prince George         12254346.
 ```
 
 ## Additional Useful Functions
@@ -323,29 +319,29 @@ There are a couple of other functions in `bcdata` that are useful to know when w
 
 ```r
 bcdc_describe_feature("6a2fea1b-0cc4-4fc2-8017-eaf755d516da")
-#> # A tibble: 20 x 5
-#>    col_name      sticky remote_col_type    local_col_type column_comments                           
-#>    <chr>         <lgl>  <chr>              <chr>          <chr>                                     
-#>  1 id            FALSE  xsd:string         character      <NA>                                      
-#>  2 LOCAL_REG_GR… FALSE  xsd:decimal        numeric        LOCAL_REG_GREENSPACE_ID is a system-gener…
-#>  3 PARK_NAME     TRUE   xsd:string         character      PARK NAME is the name of the park, e.g., …
-#>  4 PARK_TYPE     TRUE   xsd:string         character      PARK_TYPE is the type of park, e.g., Loca…
-#>  5 PARK_PRIMARY… TRUE   xsd:string         character      PARK PRIMARY USE defines the primary use …
-#>  6 REGIONAL_DIS… TRUE   xsd:string         character      REGIONAL_DISTRICT is the name of the regi…
-#>  7 MUNICIPALITY  TRUE   xsd:string         character      MUNICIPALITY is the name of the municipal…
-#>  8 CIVIC_NUMBER  TRUE   xsd:decimal        numeric        CIVIC_NUMBER is the street number or near…
-#>  9 CIVIC_NUMBER… TRUE   xsd:string         character      CIVIC_NUMBER_SUFFIX is the letter or frac…
-#> 10 STREET_NAME   TRUE   xsd:string         character      STREET_NAME is the name of the street or …
-#> 11 LATITUDE      TRUE   xsd:decimal        numeric        LATITUDE is the geographic coordinate, in…
-#> 12 LONGITUDE     TRUE   xsd:decimal        numeric        LONGITUDE is the geographic coordinate, i…
-#> 13 WHEN_UPDATED  TRUE   xsd:date           date           WHEN_UPDATED is the date and time the rec…
-#> 14 WEBSITE_URL   TRUE   xsd:string         character      WEBSITE_URL contains a link to the home p…
-#> 15 LICENCE_COMM… TRUE   xsd:string         character      LICENCE_COMMENTS describes the source of …
-#> 16 FEATURE_AREA… TRUE   xsd:decimal        numeric        FEATURE_AREA_SQM is the system calculated…
-#> 17 FEATURE_LENG… TRUE   xsd:decimal        numeric        FEATURE_LENGTH_M is the system calculated…
-#> 18 SHAPE         TRUE   gml:GeometryPrope… sfc geometry   SHAPE is the column used to reference the…
-#> 19 OBJECTID      FALSE  xsd:decimal        numeric        OBJECTID is a column required by spatial …
-#> 20 SE_ANNO_CAD_… TRUE   xsd:hexBinary      numeric        SE_ANNO_CAD_DATA is a binary column used …
+#> # A tibble: 20 × 5
+#>    col_name                sticky remote_col_type          local_col_type column_comments           
+#>    <chr>                   <lgl>  <chr>                    <chr>          <chr>                     
+#>  1 id                      TRUE   xsd:string               character      <NA>                      
+#>  2 LOCAL_REG_GREENSPACE_ID TRUE   xsd:decimal              numeric        LOCAL_REG_GREENSPACE_ID i…
+#>  3 PARK_NAME               FALSE  xsd:string               character      PARK NAME is the name of …
+#>  4 PARK_TYPE               FALSE  xsd:string               character      PARK_TYPE is the type of …
+#>  5 PARK_PRIMARY_USE        FALSE  xsd:string               character      PARK PRIMARY USE defines …
+#>  6 REGIONAL_DISTRICT       FALSE  xsd:string               character      REGIONAL_DISTRICT is the …
+#>  7 MUNICIPALITY            FALSE  xsd:string               character      MUNICIPALITY is the name …
+#>  8 CIVIC_NUMBER            FALSE  xsd:decimal              numeric        CIVIC_NUMBER is the stree…
+#>  9 CIVIC_NUMBER_SUFFIX     FALSE  xsd:string               character      CIVIC_NUMBER_SUFFIX is th…
+#> 10 STREET_NAME             FALSE  xsd:string               character      STREET_NAME is the name o…
+#> 11 LATITUDE                FALSE  xsd:decimal              numeric        LATITUDE is the geographi…
+#> 12 LONGITUDE               FALSE  xsd:decimal              numeric        LONGITUDE is the geograph…
+#> 13 WHEN_UPDATED            FALSE  xsd:date                 date           WHEN_UPDATED is the date …
+#> 14 WEBSITE_URL             FALSE  xsd:string               character      WEBSITE_URL contains a li…
+#> 15 LICENCE_COMMENTS        FALSE  xsd:string               character      LICENCE_COMMENTS describe…
+#> 16 FEATURE_AREA_SQM        FALSE  xsd:decimal              numeric        FEATURE_AREA_SQM is the s…
+#> 17 FEATURE_LENGTH_M        FALSE  xsd:decimal              numeric        FEATURE_LENGTH_M is the s…
+#> 18 SHAPE                   FALSE  gml:GeometryPropertyType sfc geometry   SHAPE is the column used …
+#> 19 OBJECTID                TRUE   xsd:decimal              numeric        OBJECTID is a column requ…
+#> 20 SE_ANNO_CAD_DATA        FALSE  xsd:hexBinary            numeric        SE_ANNO_CAD_DATA is a bin…
 ```
 
 This is a helpful initial step to learn column names and types when you construct your query.
@@ -366,7 +362,7 @@ bcdc_query_geodata("6a2fea1b-0cc4-4fc2-8017-eaf755d516da") %>%
 #>  1528155 821142.1, 1528155 1224202, 1126789 1224202, 1126789 821142.1)))))
 #> 
 #> <full query url>
-#> https://openmaps.gov.bc.ca/geo/pub/wfs/?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&outputFormat=application%2Fjson&typeNames=WHSE_BASEMAPPING.GBA_LOCAL_REG_GREENSPACES_SP&SRSNAME=EPSG%3A3005&CQL_FILTER=%28%28%22PARK_PRIMARY_USE%22%20%3D%20%27Park%27%29%20AND%20%28INTERSECTS%28SHAPE%2C%20POLYGON%20%28%281126789%20821142.1%2C%201528155%20821142.1%2C%201528155%201224202%2C%201126789%201224202%2C%201126789%20821142.1%29%29%29%29%29
+#> https://openmaps.gov.bc.ca/geo/pub/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&outputFormat=application%2Fjson&typeNames=WHSE_BASEMAPPING.GBA_LOCAL_REG_GREENSPACES_SP&SRSNAME=EPSG%3A3005&CQL_FILTER=%28%28%22PARK_PRIMARY_USE%22%20%3D%20%27Park%27%29%20AND%20%28INTERSECTS%28SHAPE%2C%20POLYGON%20%28%281126789%20821142.1%2C%201528155%20821142.1%2C%201528155%201224202%2C%201126789%201224202%2C%201126789%20821142.1%29%29%29%29%29
 ```
 
 This output is what being created by the dplyr code outlined above.
@@ -385,19 +381,19 @@ we can use that in `bcdc_query_geodata()`:
 ```r
 # Look at the columns available:
 bcdc_describe_feature("WHSE_IMAGERY_AND_BASE_MAPS.GSR_AIRPORTS_SVW")
-#> # A tibble: 42 x 5
-#>    col_name         sticky remote_col_type local_col_type column_comments                           
-#>    <chr>            <lgl>  <chr>           <chr>          <chr>                                     
-#>  1 id               FALSE  xsd:string      character      <NA>                                      
-#>  2 CUSTODIAN_ORG_D… FALSE  xsd:string      character      CUSTODIAN_ORG_DESCRIPTION contains the na…
-#>  3 BUSINESS_CATEGO… FALSE  xsd:string      character      BUSINESS_CATEGORY_CLASS designates the ca…
-#>  4 BUSINESS_CATEGO… FALSE  xsd:string      character      BUSINESS_CATEGORY_DESCRIPTION describes t…
-#>  5 OCCUPANT_TYPE_D… FALSE  xsd:string      character      OCCUPANT_TYPE_DESCRIPTION contains the de…
-#>  6 SOURCE_DATA_ID   FALSE  xsd:string      character      SOURCE_DATA_ID is a unique occupant id ei…
-#>  7 SUPPLIED_SOURCE… FALSE  xsd:string      character      SUPPLIED_SOURCE_ID_IND is an indicator of…
-#>  8 AIRPORT_NAME     FALSE  xsd:string      character      AIRPORT_NAME is a business name that can …
-#>  9 DESCRIPTION      TRUE   xsd:string      character      DESCRIPTION describes the Occupant in mor…
-#> 10 PHYSICAL_ADDRESS TRUE   xsd:string      character      PHYSICAL_ADDRESS contains the civic or no…
+#> # A tibble: 42 × 5
+#>    col_name                      sticky remote_col_type local_col_type column_comments              
+#>    <chr>                         <lgl>  <chr>           <chr>          <chr>                        
+#>  1 id                            TRUE   xsd:string      character      <NA>                         
+#>  2 CUSTODIAN_ORG_DESCRIPTION     TRUE   xsd:string      character      CUSTODIAN_ORG_DESCRIPTION co…
+#>  3 BUSINESS_CATEGORY_CLASS       TRUE   xsd:string      character      BUSINESS_CATEGORY_CLASS desi…
+#>  4 BUSINESS_CATEGORY_DESCRIPTION TRUE   xsd:string      character      BUSINESS_CATEGORY_DESCRIPTIO…
+#>  5 OCCUPANT_TYPE_DESCRIPTION     TRUE   xsd:string      character      OCCUPANT_TYPE_DESCRIPTION co…
+#>  6 SOURCE_DATA_ID                TRUE   xsd:string      character      SOURCE_DATA_ID is a unique o…
+#>  7 SUPPLIED_SOURCE_ID_IND        TRUE   xsd:string      character      SUPPLIED_SOURCE_ID_IND is an…
+#>  8 AIRPORT_NAME                  TRUE   xsd:string      character      AIRPORT_NAME is a business n…
+#>  9 DESCRIPTION                   FALSE  xsd:string      character      DESCRIPTION describes the Oc…
+#> 10 PHYSICAL_ADDRESS              FALSE  xsd:string      character      PHYSICAL_ADDRESS contains th…
 #> # … with 32 more rows
 
 # Query the data with bcdc_query_geodata and filter + select:
@@ -405,15 +401,15 @@ bcdc_query_geodata("WHSE_IMAGERY_AND_BASE_MAPS.GSR_AIRPORTS_SVW") %>%
   filter(DESCRIPTION == "airport") %>%
   select(AIRPORT_NAME, LOCALITY, NUMBER_OF_RUNWAYS)
 #> Querying 'WHSE_IMAGERY_AND_BASE_MAPS.GSR_AIRPORTS_SVW' record
-#> ● Using collect() on this object will return 37 features and 11 fields
-#> ● At most six rows of the record are printed here
-#> ────────────────────────────────────────────────────────────────────────────────────────────────────
+#> • Using collect() on this object will return 37 features and 11 fields
+#> • At most six rows of the record are printed here
+#> ───────────────────────────────────────────────────────────────────────────────────────────────────────
 #> Simple feature collection with 6 features and 11 fields
 #> Geometry type: POINT
 #> Dimension:     XY
 #> Bounding box:  xmin: 833323.9 ymin: 406886.6 xmax: 1266385 ymax: 1054950
 #> Projected CRS: NAD83 / BC Albers
-#> # A tibble: 6 x 12
+#> # A tibble: 6 × 12
 #>   id         CUSTODIAN_ORG_DESCRI… BUSINESS_CATEGO… BUSINESS_CATEGO… OCCUPANT_TYPE_D… SOURCE_DATA_ID
 #>   <chr>      <chr>                 <chr>            <chr>            <chr>            <chr>         
 #> 1 WHSE_IMAG… "Ministry of Forest,… airTransportati… Air Transportat… BC Airports      455           
