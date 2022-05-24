@@ -169,6 +169,9 @@ bcdc_get_data.bcdc_record <- function(record, resource = NULL, verbose = TRUE, .
 
   ## non-wms; resource specified
   if (!is.null(resource)) {
+    if (!resource %in% resource_df$id) {
+      stop("The specified resource does not exist in this record", call. = FALSE)
+    }
     return(read_from_url(resource_df[resource_df$id == resource, , drop = FALSE],
                          ...))
   }
@@ -217,7 +220,7 @@ bcdc_get_data.bcdc_record <- function(record, resource = NULL, verbose = TRUE, .
     resource <- resource_df[choice_input, , drop = FALSE]
     id_choice <- resource_df$id[choice_input]
 
-    message("To directly access this record in the future please use this command:\n",
+    message("To directly access this resource in the future please use this command:\n",
             glue::glue("bcdc_get_data('{record_id}', resource = '{id_choice}')"),"\n")
     read_from_url(resource, ...)
   }
