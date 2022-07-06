@@ -18,3 +18,7 @@
 #' @importFrom cli cat_rule cat_line cat_bullet col_blue col_red col_green
 #' @importFrom methods setOldClass
 NULL
+
+release_questions <- function() {
+  c("Have you run test and check with internet turned off?")
+}
