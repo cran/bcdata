@@ -22,6 +22,10 @@
 #' @examples
 #' \donttest{
 #' try(
+#'   bcdc_search_facets("download_audience")
+#' )
+#'
+#' try(
 #'   bcdc_search_facets("res_format")
 #' )
 #' }
@@ -79,6 +83,11 @@ bcdc_list_group_records <- function(group) {
   cli <- bcdc_catalogue_client("action/group_show")
 
   r <- cli$get(query = list(id = group, include_datasets = 'true'))
+
+  if (r$status_code == 404){
+    stop("404: URL not found - you may have specified an invalid group?", call. = FALSE)
+  }
+
   r$raise_for_status()
 
   res <- jsonlite::fromJSON(r$parse("UTF-8"))
@@ -86,6 +95,46 @@ bcdc_list_group_records <- function(group) {
 
   d <- tibble::as_tibble(res$result$packages)
   as.bcdc_group(d, description = res$result$description)
+
+}
+
+#' @export
+#' @describeIn bcdc_list_organization_records
+#'
+bcdc_list_organizations <- function() bcdc_search_facets("organization")
+
+#' Retrieve organization information for B.C. Data Catalogue
+#'
+#' Returns a tibble of organizations or records. Organizations can be viewed here:
+#' https://catalogue.data.gov.bc.ca/organizations or accessed directly from R using `bcdc_list_organizations`
+#'
+#' @param organization Name of the organization
+#' @export
+#' @examples
+#' \donttest{
+#' try(
+#'   bcdc_list_organization_records('bc-stats')
+#' )
+#' }
+
+bcdc_list_organization_records <- function(organization) {
+  if(!has_internet()) stop("No access to internet", call. = FALSE) # nocov
+
+  cli <- bcdc_catalogue_client("action/organization_show")
+
+  r <- cli$get(query = list(id = organization, include_datasets = 'true'))
+
+  if (r$status_code == 404){
+    stop("404: URL not found - you may have specified an invalid organization?",  call. = FALSE)
+  }
+
+  r$raise_for_status()
+
+  res <- jsonlite::fromJSON(r$parse("UTF-8"))
+  stopifnot(res$success)
+
+  d <- tibble::as_tibble(res$result$packages)
+  as.bcdc_organization(d, description = res$result$description)
 
 }
 
@@ -129,12 +178,14 @@ bcdc_list <- function() {
 #' @param ... search terms
 #' @param license_id the type of license (see `bcdc_search_facets("license_id")`).
 #' @param download_audience download audience
-#'        (see `bcdc_search_facets("download_audience")`). Default `"Public"`
+#'        (see `bcdc_search_facets("download_audience")`). Default `NULL` (all audiences).
 #' @param res_format format of resource (see `bcdc_search_facets("res_format")`)
 #' @param sector sector of government from which the data comes
 #'        (see `bcdc_search_facets("sector")`)
 #' @param organization government organization that manages the data
 #'        (see `bcdc_search_facets("organization")`)
+#' @param groups collections of datasets for a particular project or on a particular theme
+#'        (see `bcdc_search_facets("groups")`)
 #' @param n number of results to return. Default `100`
 #'
 #' @return A list containing the records that match the search
@@ -149,36 +200,53 @@ bcdc_list <- function() {
 #' try(
 #'   bcdc_search("regional district", res_format = "fgdb")
 #' )
+#'
+#' try(
+#'   bcdc_search("angling", groups = "bc-tourism")
+#' )
 #' }
 bcdc_search <- function(..., license_id = NULL,
-                        download_audience = "Public",
-                        res_format=NULL,
+                        download_audience = NULL,
+                        res_format = NULL,
                         sector = NULL,
                         organization = NULL,
+                        groups = NULL,
                         n = 100) {
 
-  if(!has_internet()) stop("No access to internet", call. = FALSE) # nocov
+  if (!has_internet()) stop("No access to internet", call. = FALSE) # nocov
 
   # TODO: allow terms to be passed as a vector, and allow use of | for OR
-  terms <- paste0(compact(list(...)), collapse = "+")
+  terms <- process_search_terms(...)
+
   facets <- compact(list(license_id = license_id,
                 download_audience = download_audience,
                 res_format = res_format,
                 sector = sector,
-                organization = organization
+                organization = organization,
+                groups = groups
                 ))
 
-  lapply(names(facets), function(x) {
-    facet_vals <- bcdc_search_facets(x)
-    if (!facets[x] %in% facet_vals$name) {
-      stop(facets[x], " is not a valid value for ", x,
-           call. = FALSE)
-    }
-  })
+  # build query by collating the terms and any user supplied facets
+  # if there are no supplied facets (e.g., is_empty(facets) returns TRUE) just use terms)
+  query <- if (is_empty(facets)) {
+    paste0(terms)
+  } else {
+    #check that the facet values are valid
+    lapply(names(facets), function(x) {
+      facet_vals <- bcdc_search_facets(x)
+      if (!facets[x] %in% facet_vals$name) {
+        stop(facets[x], " is not a valid value for ", x,
+             call. = FALSE)
+      }
+    })
 
-  query <- paste0(
-    terms, ifelse(nzchar(terms), "+", ""),
-    paste(names(facets), facets, sep = ":", collapse = "+"))
+    paste0(terms, "+", paste(
+      names(facets),
+      paste0("\"", facets, "\""),
+      sep = ":",
+      collapse = "+"
+    ))
+  }
 
   query <- gsub("\\s+", "%20", query)
 
@@ -295,6 +363,11 @@ as.bcdc_group <- function(x, description) {
             description = description)
 }
 
+as.bcdc_organization <- function(x, description) {
+  structure(x,
+            class = c("bcdc_organization", setdiff(class(x), "bcdc_organization")),
+            description = description)
+}
 
 #' Provide a data frame containing the metadata for all resources from a single B.C. Data Catalogue record
 #'
@@ -346,4 +419,12 @@ bcdc_tidy_resources.character <- function(record){
 #' @export
 bcdc_tidy_resources.bcdc_record <- function(record) {
   record$resource_df
+}
+
+process_search_terms <- function(...) {
+  dots_list <- compact(list(...))
+  if (length(names(dots_list)) > 0) {
+    stop("search terms passed to ... should not be named")
+  }
+  paste0(dots_list, collapse = "+")
 }

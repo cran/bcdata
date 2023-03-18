@@ -7,10 +7,11 @@
 bcdc_search(
   ...,
   license_id = NULL,
-  download_audience = "Public",
+  download_audience = NULL,
   res_format = NULL,
   sector = NULL,
   organization = NULL,
+  groups = NULL,
   n = 100
 )
 }
@@ -20,7 +21,7 @@ bcdc_search(
 \item{license_id}{the type of license (see \code{bcdc_search_facets("license_id")}).}
 
 \item{download_audience}{download audience
-(see \code{bcdc_search_facets("download_audience")}). Default \code{"Public"}}
+(see \code{bcdc_search_facets("download_audience")}). Default \code{NULL} (all audiences).}
 
 \item{res_format}{format of resource (see \code{bcdc_search_facets("res_format")})}
 
@@ -29,6 +30,9 @@ bcdc_search(
 
 \item{organization}{government organization that manages the data
 (see \code{bcdc_search_facets("organization")})}
+
+\item{groups}{collections of datasets for a particular project or on a particular theme
+(see \code{bcdc_search_facets("groups")})}
 
 \item{n}{number of results to return. Default \code{100}}
 }
@@ -46,6 +50,10 @@ try(
 
 try(
   bcdc_search("regional district", res_format = "fgdb")
+)
+
+try(
+  bcdc_search("angling", groups = "bc-tourism")
 )
 }
 }

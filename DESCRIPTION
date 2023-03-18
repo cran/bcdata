@@ -1,6 +1,6 @@
 Package: bcdata
 Title: Search and Retrieve Data from the BC Data Catalogue
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: 
     c(person(given = "Andy",
              family = "Teucher",
@@ -40,7 +40,7 @@ Imports: methods, utils, stats, cli (>= 3.3.0), DBI (>= 1.1.0), crul
 Suggests: covr, ggplot2, knitr, rmarkdown, testthat, withr
 VignetteBuilder: knitr
 Encoding: UTF-8
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Collate: 'bcdata-package.R' 'bcdc-get-citation.R' 'bcdc-web-services.R'
         'bcdc_browse.R' 'bcdc_options.R' 'bcdc_search.R' 'cli.R'
         'cql-geom-predicates.R' 'cql-translator.R' 'describe-feature.R'
@@ -49,11 +49,11 @@ Collate: 'bcdata-package.R' 'bcdc-get-citation.R' 'bcdc-web-services.R'
         'utils-mutate.R' 'utils-pipe.R' 'utils-select.R'
         'utils-show-query.R' 'utils.R' 'zzz.R'
 NeedsCompilation: no
-Packaged: 2023-01-03 20:38:22 UTC; ateucher
+Packaged: 2023-03-18 14:20:12 UTC; andyteucher
 Author: Andy Teucher [aut, cre] (<https://orcid.org/0000-0002-7840-692X>),
   Sam Albers [aut, ctb] (<https://orcid.org/0000-0002-9270-7884>),
   Stephanie Hazlitt [aut, ctb] (<https://orcid.org/0000-0002-3161-2304>),
   Province of British Columbia [cph]
 Maintainer: Andy Teucher <andy.teucher@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-01-05 21:50:56 UTC
+Date/Publication: 2023-03-18 14:50:02 UTC
