@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
-<meta name="date" content="2022-10-28" />
+<meta name="date" content="2024-12-11" />
 
 <title>Update to filter() behaviour in bcdata v0.4.0</title>
 
@@ -49,6 +49,7 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -339,7 +340,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Update to <code>filter()</code> behaviour
 in bcdata v0.4.0</h1>
-<h4 class="date">2022-10-28</h4>
+<h4 class="date">2024-12-11</h4>
 
 
 
@@ -375,35 +376,36 @@ bounding box.</p>
 embedded in the call:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">bcdc_query_geodata</span>(<span class="st">&quot;local-and-regional-greenspaces&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">BBOX</span>(<span class="fu">st_bbox</span>(two_points, <span class="at">crs =</span> <span class="fu">st_crs</span>(two_points))))</span></code></pre></div>
-<pre><code>## Error: Unable to process query. Did you use a function that should be evaluated locally? If so, try wrapping it in &#39;local()&#39;.</code></pre>
+<pre><code>## Error: Error : Cannot translate a &lt;sfc_POINT&gt; object to SQL.
+## ℹ Do you want to force evaluation in R with (e.g.) `!!x` or `local(x)`?</code></pre>
 <p>However you must now use <code>local()</code> to force local
 evaluation of <code>st_bbox()</code> on your machine in R, before it is
 translated into a query plan to be executed on the server:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">bcdc_query_geodata</span>(<span class="st">&quot;local-and-regional-greenspaces&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">BBOX</span>(<span class="fu">local</span>(<span class="fu">st_bbox</span>(two_points, <span class="at">crs =</span> <span class="fu">st_crs</span>(two_points)))))</span></code></pre></div>
 <pre><code>## Querying &#39;local-and-regional-greenspaces&#39; record
-## • Using collect() on this object will return 1154 features and 19 fields
+## • Using collect() on this object will return 1158 features and 19 fields
 ## • At most six rows of the record are printed here
 ## ────────────────────────────────────────────────────────────────────────────────────────────────────
 ## Simple feature collection with 6 features and 19 fields
 ## Geometry type: POLYGON
 ## Dimension:     XY
-## Bounding box:  xmin: 1200113 ymin: 385903.5 xmax: 1202608 ymax: 386561.8
+## Bounding box:  xmin: 1200113 ymin: 385903.5 xmax: 1202130 ymax: 388026
 ## Projected CRS: NAD83 / BC Albers
 ## # A tibble: 6 × 20
-##   id         LOCAL…¹ PARK_…² PARK_…³ PARK_…⁴ REGIO…⁵ MUNIC…⁶ CIVIC…⁷ CIVIC…⁸ STREE…⁹ LATIT…˟ LONGI…˟
-##   &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;     &lt;dbl&gt;   &lt;dbl&gt;
-## 1 WHSE_BASE…    3347 Konuks… Local   Green … Capital Distri… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;       48.5   -123.
-## 2 WHSE_BASE…    3304 &lt;NA&gt;    Local   Trail   Capital Distri… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;       48.5   -123.
-## 3 WHSE_BASE…    3380 &lt;NA&gt;    Local   Water … Capital Distri… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;       48.5   -123.
-## 4 WHSE_BASE…    3369 &lt;NA&gt;    Local   Water … Capital Distri… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;       48.5   -123.
-## 5 WHSE_BASE…    3453 &lt;NA&gt;    Local   Water … Capital Distri… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;       48.5   -123.
-## 6 WHSE_BASE…    3361 &lt;NA&gt;    Local   Trail   Capital Distri… &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;       48.5   -123.
-## # … with 8 more variables: WHEN_UPDATED &lt;date&gt;, WEBSITE_URL &lt;chr&gt;, LICENCE_COMMENTS &lt;chr&gt;,
-## #   FEATURE_AREA_SQM &lt;dbl&gt;, FEATURE_LENGTH_M &lt;dbl&gt;, OBJECTID &lt;int&gt;, SE_ANNO_CAD_DATA &lt;chr&gt;,
-## #   geometry &lt;POLYGON [m]&gt;, and abbreviated variable names ¹​LOCAL_REG_GREENSPACE_ID, ²​PARK_NAME,
-## #   ³​PARK_TYPE, ⁴​PARK_PRIMARY_USE, ⁵​REGIONAL_DISTRICT, ⁶​MUNICIPALITY, ⁷​CIVIC_NUMBER,
-## #   ⁸​CIVIC_NUMBER_SUFFIX, ⁹​STREET_NAME, ˟​LATITUDE, ˟​LONGITUDE</code></pre>
+##   id      LOCAL_REG_GREENSPACE…¹ PARK_NAME PARK_TYPE PARK_PRIMARY_USE REGIONAL_DISTRICT MUNICIPALITY
+##   &lt;chr&gt;                    &lt;int&gt; &lt;chr&gt;     &lt;chr&gt;     &lt;chr&gt;            &lt;chr&gt;             &lt;chr&gt;       
+## 1 WHSE_B…                    689 Cranford… Local     Water Access     Capital           District of…
+## 2 WHSE_B…                    634 &lt;NA&gt;      Local     Water Access     Capital           District of…
+## 3 WHSE_B…                    725 &lt;NA&gt;      Local     Water Access     Capital           District of…
+## 4 WHSE_B…                    665 Konukson… Local     Green Space      Capital           District of…
+## 5 WHSE_B…                    622 &lt;NA&gt;      Local     Trail            Capital           District of…
+## 6 WHSE_B…                    698 &lt;NA&gt;      Local     Water Access     Capital           District of…
+## # ℹ abbreviated name: ¹​LOCAL_REG_GREENSPACE_ID
+## # ℹ 13 more variables: CIVIC_NUMBER &lt;chr&gt;, CIVIC_NUMBER_SUFFIX &lt;chr&gt;, STREET_NAME &lt;chr&gt;,
+## #   LATITUDE &lt;dbl&gt;, LONGITUDE &lt;dbl&gt;, WHEN_UPDATED &lt;date&gt;, WEBSITE_URL &lt;chr&gt;,
+## #   LICENCE_COMMENTS &lt;chr&gt;, FEATURE_AREA_SQM &lt;dbl&gt;, FEATURE_LENGTH_M &lt;dbl&gt;, OBJECTID &lt;int&gt;,
+## #   SE_ANNO_CAD_DATA &lt;chr&gt;, geometry &lt;POLYGON [m]&gt;</code></pre>
 <p>There is another illustration in the <a href="https://bcgov.github.io/bcdata/articles/efficiently-query-spatial-data-in-the-bc-data-catalogue.html#a-note-about-using-local-r-functions-in-constructing-filter-queries">“querying
 spatial data vignette”</a>.</p>
 

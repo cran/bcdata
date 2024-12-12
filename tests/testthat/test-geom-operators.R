@@ -10,24 +10,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-context("Geometric operators work with appropriate data")
-
 if (has_internet() && identical(Sys.getenv("NOT_CRAN"), "true")) {
   local <- bcdc_query_geodata("regional-districts-legally-defined-administrative-areas-of-bc") %>%
     filter(ADMIN_AREA_NAME == "Cariboo Regional District") %>%
     collect()
 }
 
-test_that("bcdc_check_geom_size outputs message with low threshold",{
+test_that("bcdc_check_geom_size outputs message with low threshold", {
   skip_on_cran()
   skip_if_net_down()
 
   withr::local_options(list(bcdata.max_geom_pred_size = 1))
-  expect_message(bcdc_check_geom_size(local))
+  expect_message(bcdc_check_geom_size(local), "The object is too large")
   expect_false(bcdc_check_geom_size(local))
 })
 
-test_that("bcdc_check_geom_size is silent with high threshold",{
+test_that("bcdc_check_geom_size is silent with high threshold", {
   skip_on_cran()
   skip_if_net_down()
 
@@ -36,7 +34,7 @@ test_that("bcdc_check_geom_size is silent with high threshold",{
 })
 
 
-test_that("WITHIN works",{
+test_that("WITHIN works", {
   skip_on_cran()
   skip_if_net_down()
 
@@ -46,12 +44,12 @@ test_that("WITHIN works",{
       collect()
   )
 
-  expect_is(remote, "sf")
+  expect_s3_class(remote, "sf")
   expect_equal(attr(remote, "sf_column"), "geometry")
 })
 
 
-test_that("INTERSECTS works",{
+test_that("INTERSECTS works", {
   skip_on_cran()
   skip_if_net_down()
 
@@ -61,9 +59,8 @@ test_that("INTERSECTS works",{
       collect()
   )
 
-  expect_is(remote, "sf")
+  expect_s3_class(remote, "sf")
   expect_equal(attr(remote, "sf_column"), "geometry")
-
 })
 
 test_that("RELATE works", {
@@ -77,7 +74,7 @@ test_that("RELATE works", {
       collect()
   )
 
-  expect_is(remote, "sf")
+  expect_s3_class(remote, "sf")
   expect_equal(attr(remote, "sf_column"), "geometry")
 })
 
@@ -91,7 +88,7 @@ test_that("DWITHIN works", {
       collect()
   )
 
-  expect_is(remote, "sf")
+  expect_s3_class(remote, "sf")
   expect_equal(attr(remote, "sf_column"), "geometry")
 })
 
@@ -107,7 +104,7 @@ test_that("BEYOND works", {
       collect()
   )
 
-  expect_is(remote, "sf")
+  expect_s3_class(remote, "sf")
   expect_equal(attr(remote, "sf_column"), "geometry")
 })
 
@@ -117,11 +114,11 @@ test_that("BBOX works with an sf bbox", {
 
   remote <- suppressWarnings(
     bcdc_query_geodata("bc-parks-ecological-reserves-and-protected-areas") %>%
-      filter(FEATURE_LENGTH_M <= 1000, BBOX(sf::st_bbox(local))) %>%
+      filter(FEATURE_LENGTH_M <= 1000, BBOX(!!sf::st_bbox(local))) %>%
       collect()
   )
 
-  expect_is(remote, "sf")
+  expect_s3_class(remote, "sf")
   expect_equal(attr(remote, "sf_column"), "geometry")
 })
 
@@ -136,7 +133,7 @@ test_that("BBOX works with an sf object", {
       collect()
   )
 
-  expect_is(remote, "sf")
+  expect_s3_class(remote, "sf")
   expect_equal(attr(remote, "sf_column"), "geometry")
 })
 
@@ -146,10 +143,10 @@ test_that("Other predicates work with an sf bbox", {
 
   remote <- suppressWarnings(
     bcdc_query_geodata("bc-parks-ecological-reserves-and-protected-areas") %>%
-      filter(FEATURE_LENGTH_M <= 1000, INTERSECTS(sf::st_bbox(local))) %>%
+      filter(FEATURE_LENGTH_M <= 1000, INTERSECTS(!!sf::st_bbox(local))) %>%
       collect()
   )
 
-  expect_is(remote, "sf")
+  expect_s3_class(remote, "sf")
   expect_equal(attr(remote, "sf_column"), "geometry")
 })

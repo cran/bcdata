@@ -18,8 +18,7 @@
 #' `"wms"` in the `format` column it is available as a Web
 #' Feature Service, and you can query and download it
 #' using `bcdc_query_geodata()`. The response will be
-#' paginated if the number of features is above the number
-#' set by the `bcdata.single_download_limit` option.
+#' paginated if the number of features is greater than that allowed by the server.
 #' Please see [bcdc_options()] for defaults and more
 #' information.
 #'
@@ -185,7 +184,7 @@ bcdc_query_geodata.bcdc_record <- function(record, crs = 3005) {
 #' )
 #'
 #' try(
-#'   bcdc_preview("points-of-well-diversion-applications")
+#'   bcdc_preview("water-reservations-points")
 #' )
 #'
 #' # Using BCGW name
