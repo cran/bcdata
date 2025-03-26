@@ -1,6 +1,6 @@
 Package: bcdata
 Title: Search and Retrieve Data from the BC Data Catalogue
-Version: 0.5.0
+Version: 0.5.1
 Authors@R: 
     c(person(given = "Andy",
              family = "Teucher",
@@ -50,11 +50,11 @@ Collate: 'bcdata-package.R' 'bcdc-get-citation.R' 'bcdc-web-services.R'
         'utils-show-query.R' 'utils.R' 'zzz.R'
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2024-12-12 01:39:20 UTC; andy
+Packaged: 2025-03-26 17:16:06 UTC; andy
 Author: Andy Teucher [aut, cre] (<https://orcid.org/0000-0002-7840-692X>),
   Sam Albers [aut, ctb] (<https://orcid.org/0000-0002-9270-7884>),
   Stephanie Hazlitt [aut, ctb] (<https://orcid.org/0000-0002-3161-2304>),
   Province of British Columbia [cph]
 Maintainer: Andy Teucher <andy.teucher@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-12-12 04:40:03 UTC
+Date/Publication: 2025-03-26 17:40:06 UTC

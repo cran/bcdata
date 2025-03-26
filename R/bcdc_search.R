@@ -29,10 +29,17 @@
 #'   bcdc_search_facets("res_format")
 #' )
 #' }
-bcdc_search_facets <- function(facet = c("license_id", "download_audience",
-                                  "res_format", "publish_state",
-                                  "organization", "groups")) {
-  if(!has_internet()) stop("No access to internet", call. = FALSE) # nocov
+bcdc_search_facets <- function(
+  facet = c(
+    "license_id",
+    "download_audience",
+    "res_format",
+    "publish_state",
+    "organization",
+    "groups"
+  )
+) {
+  if (!has_internet()) stop("No access to internet", call. = FALSE) # nocov
 
   facet <- match.arg(facet, several.ok = TRUE)
   query <- paste0("\"", facet, "\"", collapse = ",")
@@ -40,7 +47,15 @@ bcdc_search_facets <- function(facet = c("license_id", "download_audience",
 
   cli <- bcdc_catalogue_client("action/package_search")
 
-  r <- cli$get(query = list(facet.field = query, rows = 0))
+  option_facet_limit <- getOption("bcdata.max_package_search_facet_limit", 1000)
+
+  r <- cli$get(
+    query = list(
+      facet.field = query,
+      rows = 0,
+      facet.limit = option_facet_limit
+    )
+  )
   r$raise_for_status()
 
   res <- jsonlite::fromJSON(r$parse("UTF-8"))
@@ -51,11 +66,9 @@ bcdc_search_facets <- function(facet = c("license_id", "download_audience",
   facet_dfs <- lapply(facet_list, function(x) {
     x$items$facet <- x$title
     x$items[, c("facet", setdiff(names(x$items), "facet"))]
-    }
-  )
+  })
 
   dplyr::bind_rows(facet_dfs)
-
 }
 
 #' @export
@@ -78,14 +91,19 @@ bcdc_list_groups <- function() bcdc_search_facets("groups")
 #' }
 
 bcdc_list_group_records <- function(group) {
-  if(!has_internet()) stop("No access to internet", call. = FALSE) # nocov
+  if (!has_internet()) stop("No access to internet", call. = FALSE) # nocov
 
-  cli <- bcdc_catalogue_client("action/group_show")
+  cli <- bcdc_catalogue_client("action/group_package_show")
 
-  r <- cli$get(query = list(id = group, include_datasets = 'true'))
+  option_group_limit <- getOption("bcdata.max_group_package_show_limit", 1000)
 
-  if (r$status_code == 404){
-    stop("404: URL not found - you may have specified an invalid group?", call. = FALSE)
+  r <- cli$get(query = list(id = group, limit = option_group_limit))
+
+  if (r$status_code == 404) {
+    stop(
+      "404: URL not found - you may have specified an invalid group?",
+      call. = FALSE
+    )
   }
 
   r$raise_for_status()
@@ -93,9 +111,8 @@ bcdc_list_group_records <- function(group) {
   res <- jsonlite::fromJSON(r$parse("UTF-8"))
   stopifnot(res$success)
 
-  d <- tibble::as_tibble(res$result$packages)
+  d <- tibble::as_tibble(res$result)
   as.bcdc_group(d, description = res$result$description)
-
 }
 
 #' @export
@@ -118,14 +135,24 @@ bcdc_list_organizations <- function() bcdc_search_facets("organization")
 #' }
 
 bcdc_list_organization_records <- function(organization) {
-  if(!has_internet()) stop("No access to internet", call. = FALSE) # nocov
+  if (!has_internet()) stop("No access to internet", call. = FALSE) # nocov
 
-  cli <- bcdc_catalogue_client("action/organization_show")
+  option_package_limit <- getOption("bcdata.max_package_search_limit", 1000)
 
-  r <- cli$get(query = list(id = organization, include_datasets = 'true'))
+  cli <- bcdc_catalogue_client("action/package_search")
 
-  if (r$status_code == 404){
-    stop("404: URL not found - you may have specified an invalid organization?",  call. = FALSE)
+  r <- cli$get(
+    query = list(
+      fq = paste0("organization:", organization), # filter query for the organization
+      rows = option_package_limit
+    )
+  )
+
+  if (r$status_code == 404) {
+    stop(
+      "404: URL not found - you may have specified an invalid organization?",
+      call. = FALSE
+    )
   }
 
   r$raise_for_status()
@@ -133,9 +160,8 @@ bcdc_list_organization_records <- function(organization) {
   res <- jsonlite::fromJSON(r$parse("UTF-8"))
   stopifnot(res$success)
 
-  d <- tibble::as_tibble(res$result$packages)
+  d <- tibble::as_tibble(res$result$results)
   as.bcdc_organization(d, description = res$result$description)
-
 }
 
 #' Return a full list of the names of B.C. Data Catalogue records
@@ -149,14 +175,13 @@ bcdc_list_organization_records <- function(organization) {
 #' )
 #' }
 bcdc_list <- function() {
-  if(!has_internet()) stop("No access to internet", call. = FALSE) # nocov
+  if (!has_internet()) stop("No access to internet", call. = FALSE) # nocov
 
   l_new_ret <- 1
   ret <- character()
   offset <- 0
   limit <- 1000
   while (l_new_ret) {
-
     cli <- bcdc_catalogue_client("action/package_list")
 
     r <- cli$get(query = list(offset = offset, limit = limit))
@@ -205,26 +230,29 @@ bcdc_list <- function() {
 #'   bcdc_search("angling", groups = "bc-tourism")
 #' )
 #' }
-bcdc_search <- function(..., license_id = NULL,
-                        download_audience = NULL,
-                        res_format = NULL,
-                        sector = NULL,
-                        organization = NULL,
-                        groups = NULL,
-                        n = 100) {
-
+bcdc_search <- function(
+  ...,
+  license_id = NULL,
+  download_audience = NULL,
+  res_format = NULL,
+  sector = NULL,
+  organization = NULL,
+  groups = NULL,
+  n = 100
+) {
   if (!has_internet()) stop("No access to internet", call. = FALSE) # nocov
 
   # TODO: allow terms to be passed as a vector, and allow use of | for OR
   terms <- process_search_terms(...)
 
-  facets <- compact(list(license_id = license_id,
-                download_audience = download_audience,
-                res_format = res_format,
-                sector = sector,
-                organization = organization,
-                groups = groups
-                ))
+  facets <- compact(list(
+    license_id = license_id,
+    download_audience = download_audience,
+    res_format = res_format,
+    sector = sector,
+    organization = organization,
+    groups = groups
+  ))
 
   # build query by collating the terms and any user supplied facets
   # if there are no supplied facets (e.g., is_empty(facets) returns TRUE) just use terms)
@@ -235,17 +263,20 @@ bcdc_search <- function(..., license_id = NULL,
     lapply(names(facets), function(x) {
       facet_vals <- bcdc_search_facets(x)
       if (!facets[x] %in% facet_vals$name) {
-        stop(facets[x], " is not a valid value for ", x,
-             call. = FALSE)
+        stop(facets[x], " is not a valid value for ", x, call. = FALSE)
       }
     })
 
-    paste0(terms, "+", paste(
-      names(facets),
-      paste0("\"", facets, "\""),
-      sep = ":",
-      collapse = "+"
-    ))
+    paste0(
+      terms,
+      "+",
+      paste(
+        names(facets),
+        paste0("\"", facets, "\""),
+        sep = ":",
+        collapse = "+"
+      )
+    )
   }
 
   query <- gsub("\\s+", "%20", query)
@@ -263,10 +294,16 @@ bcdc_search <- function(..., license_id = NULL,
   cont <- res$result
 
   n_found <- cont$count
-  if(n_found > n){
-    message("Found ", n_found, " matches. Returning the first ", n,
-            ".\nTo see them all, rerun the search and set the 'n' argument to ",
-            n_found, ".")
+  if (n_found > n) {
+    message(
+      "Found ",
+      n_found,
+      " matches. Returning the first ",
+      n,
+      ".\nTo see them all, rerun the search and set the 'n' argument to ",
+      n_found,
+      "."
+    )
   }
   ret <- cont$results
   names(ret) <- vapply(ret, `[[`, "name", FUN.VALUE = character(1))
@@ -308,8 +345,7 @@ bcdc_search <- function(..., license_id = NULL,
 #' )
 #' }
 bcdc_get_record <- function(id) {
-
-  if(!has_internet()) stop("No access to internet", call. = FALSE) # nocov
+  if (!has_internet()) stop("No access to internet", call. = FALSE) # nocov
 
   id <- slug_from_url(id)
 
@@ -317,8 +353,15 @@ bcdc_get_record <- function(id) {
 
   r <- cli$get(query = list(id = id))
 
-  if (r$status_code == 404){
-    stop(paste0("'", id, "' is not a valid record id or name in the B.C. Data Catalogue"), call. = FALSE)
+  if (r$status_code == 404) {
+    stop(
+      paste0(
+        "'",
+        id,
+        "' is not a valid record id or name in the B.C. Data Catalogue"
+      ),
+      call. = FALSE
+    )
   }
 
   r$raise_for_status()
@@ -330,8 +373,11 @@ bcdc_get_record <- function(id) {
 
   if (ret$id != id) {
     get_record_warn_once(
-      "It is advised to use the permanent id ('", ret$id, "') ",
-      "rather than the name of the record ('", id,
+      "It is advised to use the permanent id ('",
+      ret$id,
+      "') ",
+      "rather than the name of the record ('",
+      id,
       "') to guard against future name changes.\n"
     )
   }
@@ -358,15 +404,19 @@ as.bcdc_recordlist <- function(x) {
 }
 
 as.bcdc_group <- function(x, description) {
-  structure(x,
-            class = c("bcdc_group", setdiff(class(x), "bcdc_group")),
-            description = description)
+  structure(
+    x,
+    class = c("bcdc_group", setdiff(class(x), "bcdc_group")),
+    description = description
+  )
 }
 
 as.bcdc_organization <- function(x, description) {
-  structure(x,
-            class = c("bcdc_organization", setdiff(class(x), "bcdc_organization")),
-            description = description)
+  structure(
+    x,
+    class = c("bcdc_organization", setdiff(class(x), "bcdc_organization")),
+    description = description
+  )
 }
 
 #' Provide a data frame containing the metadata for all resources from a single B.C. Data Catalogue record
@@ -392,7 +442,7 @@ as.bcdc_organization <- function(x, description) {
 #' }
 #'
 #' @export
-bcdc_tidy_resources <- function(record){
+bcdc_tidy_resources <- function(record) {
   if (!has_internet()) stop("No access to internet", call. = FALSE) # nocov
   UseMethod("bcdc_tidy_resources")
 }
@@ -400,14 +450,16 @@ bcdc_tidy_resources <- function(record){
 
 #' @export
 bcdc_tidy_resources.default <- function(record) {
-  stop("No bcdc_tidy_resources method for an object of class ", class(record),
-       call. = FALSE)
+  stop(
+    "No bcdc_tidy_resources method for an object of class ",
+    class(record),
+    call. = FALSE
+  )
 }
 
 
 #' @export
-bcdc_tidy_resources.character <- function(record){
-
+bcdc_tidy_resources.character <- function(record) {
   if (is_whse_object_name(record)) {
     stop("No bcdc_tidy_resources method for a BCGW object name", call. = FALSE)
   }
