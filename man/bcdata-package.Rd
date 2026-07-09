@@ -14,8 +14,8 @@ Search, query, and download tabular and 'geospatial' data from the British Colum
 Useful links:
 \itemize{
   \item \url{https://bcgov.github.io/bcdata/}
-  \item \url{https://catalogue.data.gov.bc.ca/}
-  \item \url{https://github.com/bcgov/bcdata/}
+  \item \url{https://catalogue.data.gov.bc.ca}
+  \item \url{https://github.com/bcgov/bcdata}
   \item Report bugs at \url{https://github.com/bcgov/bcdata/issues}
 }
 
@@ -25,6 +25,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Andy Teucher \email{andy.teucher@gmail.com} (\href{https://orcid.org/0000-0002-7840-692X}{ORCID})
   \item Sam Albers \email{sam.albers@gmail.com} (\href{https://orcid.org/0000-0002-9270-7884}{ORCID}) [contributor]
   \item Stephanie Hazlitt \email{stephhazlitt@gmail.com} (\href{https://orcid.org/0000-0002-3161-2304}{ORCID}) [contributor]
 }

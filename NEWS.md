@@ -1,3 +1,9 @@
+# bcdata 0.5.3
+
+* Fixed a bug where `filter()` calls using CQL geometry predicates (such as
+  `INTERSECTS()`) produced malformed CQL that the server rejected with an HTTP
+  400 error (#368).
+
 # bcdata 0.5.2
 
 * Removed dependency on `leaflet.extras`, using `leaflet::addControl()` instead

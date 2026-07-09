@@ -1,6 +1,6 @@
 Package: bcdata
 Title: Search and Retrieve Data from the BC Data Catalogue
-Version: 0.5.2
+Version: 0.5.3
 Authors@R: 
     c(person(given = "Andy",
              family = "Teucher",
@@ -27,9 +27,8 @@ Description: Search, query, and download tabular and
     data formats, and query 'geospatial' data available via the B.C.
     government Web Feature Service ('WFS') using 'dplyr' syntax.
 License: Apache License (== 2.0)
-URL: https://bcgov.github.io/bcdata/,
-        https://catalogue.data.gov.bc.ca/,
-        https://github.com/bcgov/bcdata/
+URL: https://bcgov.github.io/bcdata/, https://catalogue.data.gov.bc.ca,
+        https://github.com/bcgov/bcdata
 BugReports: https://github.com/bcgov/bcdata/issues
 Imports: methods, utils, stats, cli (>= 3.3.0), DBI (>= 1.1.0), crul
         (>= 1.1.0), dbplyr (>= 2.3.4), dplyr (>= 1.1.2), tibble (>=
@@ -40,7 +39,6 @@ Imports: methods, utils, stats, cli (>= 3.3.0), DBI (>= 1.1.0), crul
 Suggests: covr, ggplot2, knitr, rmarkdown, testthat (>= 3.0.0), withr
 VignetteBuilder: knitr
 Encoding: UTF-8
-RoxygenNote: 7.3.3
 Collate: 'bcdata-package.R' 'bcdc-get-citation.R' 'bcdc-web-services.R'
         'bcdc_browse.R' 'bcdc_options.R' 'bcdc_search.R' 'cli.R'
         'cql-geom-predicates.R' 'cql-translator.R' 'describe-feature.R'
@@ -49,8 +47,10 @@ Collate: 'bcdata-package.R' 'bcdc-get-citation.R' 'bcdc-web-services.R'
         'utils-mutate.R' 'utils-pipe.R' 'utils-select.R'
         'utils-show-query.R' 'utils.R' 'zzz.R'
 Config/testthat/edition: 3
+Config/testthat/parallel: true
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-02-07 06:15:51 UTC; andy
+Packaged: 2026-07-09 00:22:21 UTC; andy
 Author: Andy Teucher [aut, cre] (ORCID:
     <https://orcid.org/0000-0002-7840-692X>),
   Sam Albers [aut, ctb] (ORCID: <https://orcid.org/0000-0002-9270-7884>),
@@ -59,4 +59,4 @@ Author: Andy Teucher [aut, cre] (ORCID:
   Province of British Columbia [cph]
 Maintainer: Andy Teucher <andy.teucher@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-02-07 06:40:02 UTC
+Date/Publication: 2026-07-09 08:40:02 UTC
